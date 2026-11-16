@@ -61,7 +61,7 @@ targets:
         NSBonjourServices: ["_opensidecar._tcp", "_od-sender._tcp"]
         LSApplicationCategoryType: public.app-category.utilities
         NSHumanReadableCopyright: "Copyright © 2026 mofu2003. 基于 OpenDisplay，按 GPL-3.0 分发。"
-        SUFeedURL: https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/appcast.xml
+        SUFeedURL: https://raw.githubusercontent.com/mofu2003/wireless-screen/refs/heads/main/public/appcast.xml
         SUPublicEDKey: IY7hnXOd1liMKCB+2PuOkh+4K+39Fl5fX5fAItfTCi0=
         SUEnableAutomaticChecks: true
         SUAutomaticallyUpdate: true
@@ -120,7 +120,7 @@ targets:
         NSAppleEventsUsageDescription: 无线副屏接收端会在已连接的 Mac 请求时关闭这台 Mac。
         LSApplicationCategoryType: public.app-category.utilities
         NSHumanReadableCopyright: "Copyright © 2026 mofu2003. 基于 OpenDisplay，按 GPL-3.0 分发。"
-        SUFeedURL: https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/appcast-receiver.xml
+        SUFeedURL: https://raw.githubusercontent.com/mofu2003/wireless-screen/refs/heads/main/public/appcast-receiver.xml
         SUPublicEDKey: IY7hnXOd1liMKCB+2PuOkh+4K+39Fl5fX5fAItfTCi0=
         SUEnableAutomaticChecks: true
         SUAutomaticallyUpdate: true

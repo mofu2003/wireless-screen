@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.1] - 2026-11-16
+
+### 自动更新
+
+- Android 与 macOS 的更新源改用稳定的 `refs/heads/main` 地址，避免短路径
+  在仓库公开后继续返回陈旧 404。
+- 公开无线副屏源码和更新源，使 Sparkle appcast、Android 清单和 Release
+  资产可被匿名访问。
+
+### 验证
+
+- 从没有 GitHub 登录凭据的网络请求验证 Android 清单、两份 appcast 和 APK
+  下载地址。
+- macOS 与 Android 构建和自动化测试。
+
 ## [0.1.0] - 2026-11-16
 
 ### 独立产品基线

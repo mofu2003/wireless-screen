@@ -132,5 +132,5 @@
     <string name="update_error_missing_file">The downloaded APK is missing.</string>
     <string name="update_error_installer">No APK installer is available on this device.</string>
     <string name="update_error_settings">Could not open the app installation settings.</string>
-    <string name="update_manifest_url" translatable="false">https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/android-version.json</string>
+    <string name="update_manifest_url" translatable="false">https://raw.githubusercontent.com/mofu2003/wireless-screen/refs/heads/main/public/android-version.json</string>
 </resources>

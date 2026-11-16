@@ -80,11 +80,12 @@ Debug APK 输出在 `Android/app/build/outputs/apk/debug/`。
 
 发布由 `.github/workflows/release.yml` 负责：
 
-- 推送 `v0.1.0` 这样的 tag，工作流会构建并签名 macOS Sender、macOS
+- 推送 `v0.1.1` 这样的 tag，工作流会构建并签名 macOS Sender、macOS
   Receiver 和 Android APK。
 - macOS 使用 Sparkle 的 EdDSA 签名 appcast，默认每 6 小时检查一次。
 - Android 使用 `public/android-version.json`，自动下载 APK、校验 SHA-256，
-  然后交给 Android 系统安装器确认。
+  然后交给 Android 系统安装器确认。客户端使用 `refs/heads/main` 形式的
+  raw 地址，避开短路径 CDN 可能返回的陈旧 404。
 - 更新文件和更新清单必须从公网匿名可读；因此 GitHub 仓库需要是公开仓库。
 
 macOS 目前使用 ad-hoc 签名，未经过 Apple 公证。首次打开或在更新后，macOS

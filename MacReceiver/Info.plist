@@ -39,7 +39,7 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/appcast-receiver.xml</string>
+	<string>https://raw.githubusercontent.com/mofu2003/wireless-screen/refs/heads/main/public/appcast-receiver.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>IY7hnXOd1liMKCB+2PuOkh+4K+39Fl5fX5fAItfTCi0=</string>
 	<key>SUScheduledCheckInterval</key>

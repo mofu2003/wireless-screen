@@ -78,7 +78,7 @@
     <string name="update_error_missing_file">下载的 APK 不存在。</string>
     <string name="update_error_installer">此设备没有可用的 APK 安装器。</string>
     <string name="update_error_settings">无法打开应用安装设置。</string>
-    <string name="update_manifest_url" translatable="false">https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/android-version.json</string>
+    <string name="update_manifest_url" translatable="false">https://raw.githubusercontent.com/mofu2003/wireless-screen/refs/heads/main/public/android-version.json</string>
     <string name="device_phone">手机</string>
     <string name="device_tablet">平板</string>
     <string name="sender_open">投屏到 Mac</string>

@@ -9,6 +9,8 @@
 - Android 使用 SHA-256 校验的 APK 更新清单，最终安装仍由系统确认。
 - Release 工作流由 `vX.Y.Z` tag 触发，也支持手动重跑。
 - 更新清单和 Release 资产要求公网匿名可读，因此仓库必须公开。
+- 客户端固定使用 `raw.githubusercontent.com/.../refs/heads/main/...`，
+  发布后还应从无登录环境直接请求清单，确认没有 404 或陈旧缓存。
 
 ## 发布步骤
 
