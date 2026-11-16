@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="title">OpenDisplay</string>
+    <string name="title">无线副屏</string>
     <string name="status_ready">准备连接</string>
     <string name="status_waiting_picture">已连接，正在等待画面…</string>
-    <string name="receiver_mac_input_unavailable">Mac 未授予“辅助功能”权限，平板触控暂时无法操作 Mac。请在 Mac 的“系统设置 → 隐私与安全性 → 辅助功能”中允许 OpenDisplay。</string>
-    <string name="update_sender">连接此设备的 Mac 上的 OpenDisplay 版本过旧，请更新后重新连接。</string>
-    <string name="hint_open_mac">在电脑上打开 OpenDisplay</string>
+    <string name="receiver_mac_input_unavailable">Mac 未授予“辅助功能”权限，平板触控暂时无法操作 Mac。请在 Mac 的“系统设置 → 隐私与安全性 → 辅助功能”中允许无线副屏。</string>
+    <string name="update_sender">连接此设备的 Mac 上的无线副屏版本过旧，请更新后重新连接。</string>
+    <string name="hint_open_mac">在电脑上打开无线副屏</string>
     <string name="hint_request_mac">在此点击“请求 Mac 连接”</string>
-    <string name="hint_pick_wifi">也可以在电脑端 OpenDisplay 的 WiFi 列表中选择这台%1$s</string>
+    <string name="hint_pick_wifi">也可以在电脑端无线副屏的 WiFi 列表中选择这台%1$s</string>
     <string name="hint_keep_open">请保持此应用打开，串流将自动开始。</string>
     <string name="settings_and_help">设置与帮助</string>
     <string name="shake_tip">提示：随时摇动%1$s即可打开设置</string>
     <string name="onboarding_title">还需要安装电脑端应用</string>
-    <string name="onboarding_body">OpenDisplay 可将这台%1$s变成 Mac 的扩展屏。请在同一 WiFi 网络的 Mac 上安装并运行 OpenDisplay。</string>
-    <string name="onboarding_step1">在 Mac 上安装 OpenDisplay 电脑端</string>
+    <string name="onboarding_body">无线副屏可将这台%1$s变成 Mac 的扩展屏。请在同一 WiFi 网络的 Mac 上安装并运行无线副屏。</string>
+    <string name="onboarding_step1">在 Mac 上安装无线副屏电脑端</string>
     <string name="onboarding_step2">连接到与 Mac 相同的 WiFi 网络</string>
     <string name="onboarding_footer">随时摇动%1$s打开设置，即可再次找到此链接。</string>
     <string name="get_mac_app">获取 Mac 版应用</string>
@@ -22,6 +22,12 @@
     <string name="done">完成</string>
     <string name="share">分享</string>
     <string name="section_status">状态</string>
+    <string name="section_display">显示</string>
+    <string name="screen_orientation">屏幕方向</string>
+    <string name="screen_orientation_auto">跟随设备</string>
+    <string name="screen_orientation_portrait">竖屏</string>
+    <string name="screen_orientation_landscape">横屏</string>
+    <string name="screen_orientation_footer">“跟随设备”使用系统自动旋转设置；竖屏和横屏会让接收端保持固定方向。</string>
     <string name="row_listening">监听状态</string>
     <string name="row_listening_value">端口 9000</string>
     <string name="row_connection">连接</string>
@@ -29,7 +35,7 @@
     <string name="row_waiting">正在等待电脑连接</string>
     <string name="row_stream">串流</string>
     <string name="section_name">名称</string>
-    <string name="name_footer">显示在电脑端 OpenDisplay 的 WiFi 设备列表中。</string>
+    <string name="name_footer">显示在电脑端无线副屏的 WiFi 设备列表中。</string>
     <string name="section_analytics">性能统计</string>
     <string name="performance_overlay">显示性能浮层</string>
     <string name="analytics_footer">串流时在屏幕底部显示帧率、码率、解码耗时和延迟。</string>
@@ -38,16 +44,16 @@
     <string name="log_empty">暂无日志。</string>
     <string name="diagnostics_footer">记录这台%1$s连接过程中的会话、重启和解码问题，不包含屏幕内容。除非主动分享，否则日志不会离开此%1$s。连接失败时可保存日志用于排查问题。</string>
     <string name="section_how">连接方法</string>
-    <string name="how_wifi">WiFi：将两台设备连接到同一网络，然后在电脑端 OpenDisplay 中选择这台%1$s。</string>
+    <string name="how_wifi">WiFi：将两台设备连接到同一网络，然后在电脑端无线副屏中选择这台%1$s。</string>
     <string name="how_rotate">旋转%1$s即可使用竖向扩展屏。</string>
     <string name="how_touch">触控：轻点左键，双指轻点右键，拖动移动，双指滑动滚动。点击悬浮键盘按钮即可用这台%1$s打字。</string>
     <string name="how_pen">触控笔：支持压感和倾斜绘制。笔接触屏幕时会忽略手指触碰。</string>
     <string name="remote_keyboard">输入到 Mac</string>
-    <string name="mac_app_footer">请在同一 WiFi 网络的 Mac 上运行 OpenDisplay。尚未安装的话，可通过此链接下载。</string>
+    <string name="mac_app_footer">请在同一 WiFi 网络的 Mac 上运行无线副屏。尚未安装的话，可通过此链接下载。</string>
     <string name="section_about">关于</string>
     <string name="row_version">版本</string>
     <string name="check_for_updates">检查更新</string>
-    <string name="check_for_updates_summary">后台自动检查并下载；下载完成后会直接打开系统安装程序。</string>
+    <string name="check_for_updates_summary">每 6 小时自动检查 GitHub Release，并通过 Android 系统安装器安装签名更新。</string>
     <string name="update_checking">正在检查更新…</string>
     <string name="update_up_to_date">当前已是最新版本。</string>
     <string name="update_available_title">发现新版本</string>
@@ -60,7 +66,7 @@
     <string name="update_ready_message">APK 已通过校验，接下来由 Android 系统确认安装。</string>
     <string name="update_install">立即安装</string>
     <string name="update_permission_title">需要安装权限</string>
-    <string name="update_permission_message">Android 要求先允许 OpenDisplay「安装未知应用」，才能安装已下载的更新。</string>
+    <string name="update_permission_message">Android 要求先允许无线副屏「安装未知应用」，才能安装已下载的更新。</string>
     <string name="update_open_settings">打开设置</string>
     <string name="update_cancel">取消</string>
     <string name="update_error_title">更新失败</string>
@@ -72,7 +78,7 @@
     <string name="update_error_missing_file">下载的 APK 不存在。</string>
     <string name="update_error_installer">此设备没有可用的 APK 安装器。</string>
     <string name="update_error_settings">无法打开应用安装设置。</string>
-    <string name="update_manifest_url" translatable="false">https://raw.githubusercontent.com/mofu2003/opendisplay/main/public/android-version.json</string>
+    <string name="update_manifest_url" translatable="false">https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/android-version.json</string>
     <string name="device_phone">手机</string>
     <string name="device_tablet">平板</string>
     <string name="sender_open">投屏到 Mac</string>
@@ -80,7 +86,7 @@
     <string name="request_mac_title">从此设备连接</string>
     <string name="request_mac_searching">正在查找可主动连接的 Mac…</string>
     <string name="request_mac_choose">请选择要连接的 Mac。</string>
-    <string name="request_mac_none">未找到 Mac。请在同一 WiFi 的 Mac 上打开 OpenDisplay，并在设置中允许连接请求。</string>
+    <string name="request_mac_none">未找到 Mac。请在同一 WiFi 的 Mac 上打开无线副屏，并在设置中允许连接请求。</string>
     <string name="request_mac_search_failed">无法搜索 Mac，请检查 WiFi 和本地网络权限。</string>
     <string name="request_mac_requesting">正在请求 %1$s 连接…</string>
     <string name="request_mac_waiting">%1$s 已接受，正在等待画面…</string>
@@ -88,7 +94,7 @@
     <string name="request_mac_retrying">Mac 仍在查找此设备，正在重试 %1$s…</string>
     <string name="request_mac_failed">无法联系 Mac：%1$s</string>
     <string name="request_mac_unknown">此 Mac 只接受已连接设备的请求。请先在 Mac 上连接一次，或在 Mac 设置中开启“允许未识别设备”。</string>
-    <string name="request_mac_disabled">此 Mac 已关闭连接请求。请在 Mac 上打开 OpenDisplay，并开启“允许设备请求连接到此 Mac”。</string>
+    <string name="request_mac_disabled">此 Mac 已关闭连接请求。请在 Mac 上打开无线副屏，并开启“允许设备请求连接到此 Mac”。</string>
     <string name="request_mac_not_visible">Mac 尚未发现此设备，请保持此页面打开后重试。</string>
     <string name="request_mac_unavailable">Mac 无法启动连接，请重试。</string>
     <string name="sender_title">投屏到 Mac</string>
@@ -98,7 +104,7 @@
     <string name="sender_start">开始投屏</string>
     <string name="sender_stop">停止投屏</string>
     <string name="sender_accessibility">开启输入控制</string>
-    <string name="sender_hint">在 Mac 上打开 OpenDisplay 并启用“允许其他设备投屏到此 Mac”，两台设备需连接同一 WiFi。</string>
+    <string name="sender_hint">在 Mac 上打开无线副屏并启用“允许其他设备投屏到此 Mac”，两台设备需连接同一 WiFi。</string>
     <string name="sender_searching">正在搜索 Mac…</string>
     <string name="sender_not_found">未找到 Mac，请手动输入地址。</string>
     <string name="sender_not_mac">该设备不是 Mac 接收端。</string>
@@ -108,7 +114,7 @@
     <string name="sender_stopped">已停止。</string>
     <string name="sender_error">无法启动：%1$s</string>
     <string name="sender_retrying">连接失败，正在重试（%1$d/%2$d）…</string>
-    <string name="sender_connect_failed">连接 Mac 失败：%1$s。请确认 Mac 已开启“接收屏幕”，两台设备连接同一 WiFi，并允许 OpenDisplay 通过防火墙。</string>
+    <string name="sender_connect_failed">连接 Mac 失败：%1$s。请确认 Mac 已开启“接收屏幕”，两台设备连接同一 WiFi，并允许无线副屏通过防火墙。</string>
     <string name="sender_timeout">连接超时</string>
     <string name="sender_refused">连接被拒绝，请在 Mac 上开启“接收屏幕”</string>
     <string name="sender_bad_host">Mac 地址无效</string>

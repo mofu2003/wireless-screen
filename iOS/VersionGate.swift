@@ -1,8 +1,5 @@
 import SwiftUI
 
-// `AppStore` (the App Store identity + deep link) lives in Shared/AppStore.swift
-// so the Mac can reference the same link when it asks the phone to update.
-
 // `PeerUpdateSignal` (what the connected Mac tells us about compatibility)
 // lives with the receiver core in Shared/StreamReceiver.swift — the Mac app's
 // receiver mode consumes the same signals.
@@ -10,8 +7,8 @@ import SwiftUI
 // MARK: - Version gate (issue #135)
 
 /// Connection-independent update lever. On launch the app fetches a small
-/// policy file we host on GitHub Pages next to the Sparkle appcast and compares
-/// its own version against it. This is the ONLY mechanism that can reach an
+/// policy file we host alongside the project releases and compares its own
+/// version against it. This is the ONLY mechanism that can reach an
 /// install that never connects to an updated Mac (e.g. the large tail still on
 /// an old release) — the peer-driven `updateRequired` path (issue #132) can't.
 ///
@@ -44,7 +41,7 @@ final class VersionGate: ObservableObject {
     private var remoteStatus: Status = .ok
     private var peerStatus: Status = .ok
 
-    private let manifestURL = URL(string: "https://raw.githubusercontent.com/mofu2003/opendisplay/main/public/ios-version.json")!
+    private let manifestURL = URL(string: "https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/ios-version.json")!
 
     /// The running app's marketing version. Local/dev builds ship "0.0.0"
     /// (the project.yml default), which we treat as "skip the gate".
@@ -66,7 +63,8 @@ final class VersionGate: ObservableObject {
         else { return }   // fail open
 
         let policy = manifest.ios
-        let url = policy.storeURL.flatMap { URL(string: $0) } ?? AppStore.updateURL
+        let url = policy.storeURL.flatMap { URL(string: $0) }
+            ?? URL(string: ProductIdentity.latestReleaseURL)!
 
         if let floor = policy.hardMinimumVersion, isVersion(current, olderThan: floor) {
             remoteStatus = .required(Update(message: policy.message ?? Self.requiredFallback, url: url))
@@ -119,9 +117,9 @@ final class VersionGate: ObservableObject {
     }
 
     private static let requiredFallback =
-        "This version of OpenDisplay is no longer supported. Update from the App Store to keep using your second display."
+        "This version of WirelessScreen is no longer supported. Update to keep using your second display."
     private static let recommendedFallback =
-        "A newer version of OpenDisplay is available."
+        "A newer version of WirelessScreen is available."
 }
 
 /// Numeric dotted-version compare (e.g. "0.10.0" older than "0.11.0"). Missing
@@ -144,7 +142,7 @@ private func versionComponents(_ s: String) -> [Int] {
 // MARK: - Blocking update screen
 
 /// Full-screen, non-dismissible gate shown when the install is below the force
-/// floor. Modeled on `OnboardingView`; the only action is opening the App Store.
+/// floor. Modeled on `OnboardingView`; the only action is opening the download page.
 struct UpdateRequiredView: View {
     let update: VersionGate.Update
 
@@ -168,7 +166,7 @@ struct UpdateRequiredView: View {
             Button {
                 UIApplication.shared.open(update.url)
             } label: {
-                Label("Update on the App Store", systemImage: "arrow.down.circle")
+                Label("打开下载页", systemImage: "arrow.down.circle")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)

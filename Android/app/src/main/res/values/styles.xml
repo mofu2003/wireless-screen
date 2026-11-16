@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Fixed brand palette: one blue identity on every wallpaper. -->
-    <style name="Theme.OpenDisplay.Base" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.WirelessScreen.Base" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/od_accent</item>
         <item name="colorOnPrimary">#FFFFFF</item>
         <item name="colorPrimaryContainer">@color/od_accent_soft</item>
@@ -23,7 +23,7 @@
         <item name="colorSurfaceContainerHighest">@color/od_container_highest</item>
     </style>
 
-    <style name="Theme.OpenDisplay" parent="Theme.OpenDisplay.Base">
+    <style name="Theme.WirelessScreen" parent="Theme.WirelessScreen.Base">
         <item name="android:windowBackground">@android:color/black</item>
         <!-- Preference dialogs (the name editor) take the activity theme: Material 3. -->
         <item name="alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>
@@ -32,7 +32,7 @@
     </style>
 
     <!-- Full-screen sheets (settings, log): not floating, on the surface color. -->
-    <style name="Theme.OpenDisplay.Sheet" parent="Theme.OpenDisplay.Base">
+    <style name="Theme.WirelessScreen.Sheet" parent="Theme.WirelessScreen.Base">
         <item name="android:windowIsFloating">false</item>
         <!-- Preference dialogs (the name editor) in Material 3, not AppCompat grey. -->
         <item name="alertDialogTheme">@style/ThemeOverlay.Material3.MaterialAlertDialog</item>

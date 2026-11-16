@@ -346,7 +346,7 @@ class ReceiverServer(
             }
             "sleeping" -> listener.onSenderSleeping()
             "updateRequired" -> listener.onUpdateRequired(
-                obj.optString("message", "Update OpenDisplay on this device to keep using it as a display."),
+                obj.optString("message", "请更新无线副屏后继续使用副屏。"),
                 obj.optString("store").ifEmpty { null })
             // Never offered in hello (6.6), so never obeyed.
             "power" -> Log.i(TAG, "ignored power ${obj.optString("action")}: not offered")
@@ -488,7 +488,7 @@ class ReceiverServer(
     }
 
     companion object {
-        private const val TAG = "OpenDisplay"
+        private const val TAG = "WirelessScreen"
         private val POISON = ByteArray(0)
 
         internal fun closeQuietly(c: java.io.Closeable?) {

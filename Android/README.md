@@ -1,123 +1,47 @@
-# OpenDisplay receiver for Android
+# Android 接收端
 
-Turns an Android phone or tablet into an extra display for the OpenDisplay
-Mac sender. It speaks the same wire protocol as the iPhone/iPad receiver
-([PROTOCOL.md](../PROTOCOL.md), pv 3), so the Mac app needs no changes.
+Android 应用把手机或平板变成无线副屏的接收端。它可以：
 
-Supports Android 5.0 (API 21) and later, so old tablets can be second screens
-too. Newer platform features (decoder low-latency mode, display cutouts,
-immersive insets) are used when present.
+- 通过 Bonjour 被发现，接受 Mac 发送的画面。
+- 主动请求已发现且已授权的 Mac 发起连接。
+- 通过 USB AOA 接收画面和发送触控、键盘输入。
+- 使用悬浮键盘把 Android 输入法提交的文字发送到 Mac。
+- 在“设置与帮助 → 显示”中选择跟随设备、固定竖屏或固定横屏。
 
-## What works
+## 构建
 
-- Discovery over Wi-Fi: advertises `_opensidecar._tcp` with the TXT `id`/`pv`
-  keys, so the device shows up in the Mac app's list.
-- Reverse start: discovers Macs advertising `_od-sender._tcp` and asks one to
-  dial the receiver. The Mac must be awake. Previously connected devices are
-  accepted automatically; a new device needs a one-time
-  **Allow unrecognized devices** toggle in the Mac app, which turns itself off
-  after that device connects.
-- Video: H.264 always, HEVC when the device has a hardware HEVC decoder.
-  MediaCodec decodes straight to a SurfaceView. Stream changes (rotation,
-  quality) rebuild the decoder from the new parameter sets, and lost decode
-  state asks the sender for a keyframe.
-- The panel (`hello.panel`) is the window in its current orientation at the
-  real density, so rotating the device re-shapes the Mac's virtual display.
-- Cursor: the Mac pointer is drawn over the video from `cursor`/`cursorImg`,
-  over TCP or the UDP side channel (port 9001) on Wi-Fi.
-- Input: tap to click, hold or drag to drag, two-finger pan to scroll, using
-  the same rules as the iOS receiver (a press waits 120 ms or 10 dp of
-  movement before it becomes a mouse-down, so a scroll never clicks).
-- Liveness and telemetry: 2 s pings with clock sync, a 5 s watchdog, and
-  `stats` every 5 s (shows up as `PHONE-STATS` in the Mac log).
-- Locking the phone or leaving the app sends `sleeping`; quitting sends
-  `closing`. A sender that goes to sleep blanks the screen.
-
-- Settings and help work like the iOS app: the idle screen's "Settings &
-  Help" button, or shake the device anytime (the stream keeps running).
-  Status, the name the Mac lists, the performance overlay, a shareable
-  connection log, how to connect, and links. First launch shows the same
-  "One more app to go" onboarding until the first connection.
-
-- Stylus (S Pen, USI and other active pens): `pencil` down/move/up with
-  pressure, tilt and azimuth, `hover` and `proximity` while in range, and
-  fingers ignored while the pen is down. Senders below pv 3 get the pen as
-  `touch`. Covered by unit tests; not yet tried with real pen hardware.
-
-Not yet: sender-side ADB discovery.
-
-## Build and install
-
-Needs JDK 17 and the Android SDK (platform 35).
+需要 JDK 17 和 Android SDK 36：
 
 ```sh
 cd Android
-./gradlew assembleDebug                 # app/build/outputs/apk/debug/app-debug.apk
-./gradlew installDebug                  # onto the connected device
-./gradlew testDebugUnitTest lintDebug   # JVM tests + lint (catches API > minSdk)
+./gradlew testDebugUnitTest lintDebug assembleDebug
 ```
 
-The debug build installs as `com.peetzweg.opendisplay.debug` ("OpenDisplay
-Dev") next to a release build.
+Debug 包名带 `.debug` 后缀，可与正式包并排安装：
+`io.github.mofu2003.wirelessscreen.debug`。
 
-## Auto-update
+## 网络
 
-Sideloaded release APKs check
-`public/android-version.json` in the `mofu2003/opendisplay` fork at launch
-and whenever the app returns to the foreground (at most once every six
-hours), and from **Settings → About → Check for updates**. The manifest points
-at the signed `OpenDisplay-Android.apk` asset on a GitHub Release.
+- Bonjour 服务类型继续使用 `_opensidecar._tcp`，以兼容旧接收端/发送端。
+- 默认监听端口为 9000，仅限当前局域网。
+- 本应用不上传屏幕内容，也不依赖账号或云服务。
 
-The app downloads into its cache, verifies the manifest's SHA-256, then opens
-Android's package installer automatically. Android always shows the final
-install prompt; silent self-replacement is not permitted. On Android 8 and
-newer the user must also allow **Install unknown apps** for OpenDisplay once.
+## USB
 
-The `Sync Android update feed` workflow rebuilds `public/android-version.json`
-from the newest published release that has a signed APK. It runs after a
-release, on a schedule, and on demand. Keep the signing key stable or Android
-will reject the upgrade.
+macOS 发送端通过 Android Open Accessory 模式发送字节流。双方必须使用同一
+组 manufacturer/model：
 
-## Connecting
+- `WirelessScreen`
+- `WirelessScreen Receiver`
 
-**Wi-Fi:** open the app on the Android device and pick it in the Mac app.
-Both need to be on the same network. To start from Android instead, tap
-**Ask Mac to connect**, choose the Mac, and wait for the normal stream to
-begin.
+Android 端定义在 `AccessoryLink.kt` 和 `res/xml/accessory_filter.xml`，macOS
+端定义在 `Mac/USBAccessory.swift`，修改时必须三处同步。
 
-**USB:** the Mac sender has no ADB support yet. Forward the receiver's port
-and point the sender at it by hand:
+## 更新
 
-```sh
-adb forward tcp:9100 tcp:9000
-open "OpenDisplay.app" --args -host 127.0.0.1 -port 9100
-```
+应用启动后和每次回到前台时检查上次检查时间，最多每 6 小时访问一次
+`public/android-version.json`。发现更高 `versionCode` 后会下载 APK，校验
+SHA-256，然后将文件交给 Android 系统安装器；系统仍会显示安装确认。
 
-`adb forward` (not `reverse`) is the right direction: the sender dials the
-receiver. UDP cannot cross the forward, so the cursor stays on TCP there.
-
-## Measured on a Pixel 10a (Android 17)
-
-Mac sender with `-testPattern YES`, HEVC 2424x1080 at 60 fps:
-
-| Transport | fps | e2e p50 | e2e p95 | RTT |
-|---|---|---|---|---|
-| USB (`adb forward`) | 60 | ~19 ms | ~22 ms | 3 ms |
-| Wi-Fi | 60 | ~24 ms | ~70 ms | 10-20 ms |
-
-End-to-end is capture on the Mac to decoder output on the phone.
-
-## Code map
-
-```
-protocol/  framing, demux, Annex B, H.264 SPS size, clock sync, hello,
-           cursor sequence, touch gestures, reverse-request JSON
-net/       ReceiverServer (TCP 9000), CursorChannel (UDP 9001), Advertiser (NSD),
-           MacRequestBrowser/MacRequestClient (reverse start)
-video/     VideoDecoder (MediaCodec), DecoderCaps (videoCaps), StreamStats
-ui/        MainActivity, VideoFrame (aspect fit), CursorView, DeviceIdentity,
-           MacRequestDialog
-```
-
-`tools/android/` has a scripted ffmpeg sender and a mock receiver for
-testing without a Mac.
+Release APK 必须使用 `wireless-screen-signing` 中的同一把密钥签名，否则
+Android 会拒绝覆盖安装。更新清单和 Release 资产必须公网匿名可读。

@@ -1,32 +1,28 @@
-name: OpenSidecar
+name: WirelessScreen
 options:
   createIntermediateGroups: true
-# Swift Package Manager dependencies. Sparkle powers the macOS app's
-# out-of-store auto-update (issue #52); it's an embedded open-source
-# framework + CLI tooling, not a hosted service — the appcast feed and the
-# DMG are served from infrastructure we already own (GitHub Pages + Releases).
+# Sparkle provides signed, out-of-store macOS updates. The appcast and
+# release archives are hosted by this repository's GitHub Releases.
 packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
-    # 2.x is the current major (latest 2.9.x) and the first Sparkle line to
-    # support SPM. `from:` allows compatible 2.x updates.
-    from: "2.6.0"
+    from: "2.10.1"
 schemes:
-  OpenSidecarMac:
+  WirelessScreenMac:
     build:
       targets:
-        OpenSidecarMac: all
+        WirelessScreenMac: all
     test:
       targets:
-        - OpenSidecarMacTests
-  OpenSidecariOS:
+        - WirelessScreenMacTests
+  WirelessScreeniOS:
     build:
       targets:
-        OpenSidecariOS: all
-  OpenSidecarMacReceiver:
+        WirelessScreeniOS: all
+  WirelessScreenMacReceiver:
     build:
       targets:
-        OpenSidecarMacReceiver: all
+        WirelessScreenMacReceiver: all
 # DEVELOPMENT_TEAM comes from the environment (see generate.sh / .env) so no
 # personal team ID lives in the repo. Unset = unsigned, fine for CI.
 settings:
@@ -34,58 +30,47 @@ settings:
     DEVELOPMENT_TEAM: ${DEVELOPMENT_TEAM}
     CODE_SIGN_STYLE: Automatic
     SWIFT_VERSION: "5.9"
-    # Version defaults for local builds. CI overrides both via xcargs:
-    # MARKETING_VERSION from the release tag, CURRENT_PROJECT_VERSION from
-    # the GitHub Actions run number (monotonic, keeps TestFlight builds unique).
+    # Version defaults for local builds. Release builds override both via
+    # xcargs: MARKETING_VERSION from the release tag and
+    # CURRENT_PROJECT_VERSION from a monotonic release counter.
     MARKETING_VERSION: "0.0.0"
     CURRENT_PROJECT_VERSION: "1"
 targets:
-  OpenSidecarMac:
+  WirelessScreenMac:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
+    dependencies:
+      - package: Sparkle
     sources:
       - Mac
       - Shared
       - MacReceiver/MacReceiver.swift
       - MacReceiver/PowerControl.swift
       - MacReceiver/FullscreenPreference.swift
-    dependencies:
-      - package: Sparkle
     info:
       path: Mac/Info.plist
       properties:
         NSPrincipalClass: NSApplication
         CFBundleDisplayName: $(BUNDLE_DISPLAY_NAME)
+        CFBundleName: $(BUNDLE_DISPLAY_NAME)
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         LSUIElement: true
-        NSLocalNetworkUsageDescription: OpenDisplay connects to your iPad or iPhone over the local network in WiFi mode.
+        NSLocalNetworkUsageDescription: 无线副屏通过本地网络连接你的平板、手机或另一台 Mac。
         NSBonjourServices: ["_opensidecar._tcp", "_od-sender._tcp"]
         LSApplicationCategoryType: public.app-category.utilities
-        # --- Sparkle auto-update (issue #52) ---
-        # Fork feed: this repository's release workflow commits the signed
-        # appcast to public/ on main, so the raw URL always serves our own
-        # updates instead of the upstream OpenDisplay feed.
-        SUFeedURL: https://raw.githubusercontent.com/mofu2003/opendisplay/main/public/appcast.xml
-        # Public EdDSA key from Sparkle's `generate_keys`. The matching private
-        # key lives only as the `SPARKLE_PRIVATE_KEY` GitHub Actions secret
-        # (used to sign the appcast in CI) and is never committed. Sparkle
-        # verifies update signatures against this public key before installing.
-        SUPublicEDKey: 6UtPbiJyqWFo8rmlHV+D4giUbYtrfi0jjjMm9G4O/h0=
-        # Background checks read the fork feed above and verify it with the
-        # fork key, so an upstream release can never replace this build.
+        NSHumanReadableCopyright: "Copyright © 2026 mofu2003. 基于 OpenDisplay，按 GPL-3.0 分发。"
+        SUFeedURL: https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/appcast.xml
+        SUPublicEDKey: IY7hnXOd1liMKCB+2PuOkh+4K+39Fl5fX5fAItfTCi0=
         SUEnableAutomaticChecks: true
-        # Download in the background and install the verified update the next
-        # time the app quits, even when the user never opens the menu.
         SUAutomaticallyUpdate: true
-        # Six-hour checks keep the fork feed responsive without polling.
         SUScheduledCheckInterval: 21600
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.peetzweg.opensidecar.mac
-        PRODUCT_NAME: OpenDisplay
-        BUNDLE_DISPLAY_NAME: OpenDisplay
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.mofu2003.wirelessscreen.mac
+        PRODUCT_NAME: WirelessScreen
+        BUNDLE_DISPLAY_NAME: 无线副屏
         SWIFT_OBJC_BRIDGING_HEADER: Mac/OpenSidecarMac-Bridging-Header.h
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_ENTITLEMENTS: Mac/OpenSidecarMac.entitlements
@@ -97,11 +82,11 @@ targets:
         # Recording/Accessibility grants every time the binary changes.
         # PRODUCT_NAME (not BUNDLE_DISPLAY_NAME) is what the permission
         # lists show, so the Debug build must override it to appear as its
-        # own row instead of a second, indistinguishable "OpenDisplay".
+        # own row instead of a second, indistinguishable "WirelessScreen".
         Debug:
-          PRODUCT_BUNDLE_IDENTIFIER: com.peetzweg.opensidecar.mac.debug
-          PRODUCT_NAME: OpenDisplay Dev
-          BUNDLE_DISPLAY_NAME: OpenDisplay Dev
+          PRODUCT_BUNDLE_IDENTIFIER: io.github.mofu2003.wirelessscreen.mac.debug
+          PRODUCT_NAME: WirelessScreen Dev
+          BUNDLE_DISPLAY_NAME: 无线副屏开发版
           # Colour-inverted icon so the dev build is obvious in the Dock,
           # cmd-tab and permission lists.
           ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-Dev
@@ -110,41 +95,41 @@ targets:
   # than the sender, which is pinned to 14 by its capture stack. Everything
   # under Shared/ and the files listed from Mac/ must therefore compile at
   # this floor; keep this the oldest macOS the receiver path supports.
-  OpenSidecarMacReceiver:
+  WirelessScreenMacReceiver:
     type: application
     platform: macOS
     deploymentTarget: "12.0"
+    dependencies:
+      - package: Sparkle
     sources:
       - MacReceiver
       - Shared
       - Mac/Log.swift
       - Mac/LogPolicies.swift
       - Mac/CheckForUpdatesView.swift
-    dependencies:
-      - package: Sparkle
     info:
       path: MacReceiver/Info.plist
       properties:
         NSPrincipalClass: NSApplication
         CFBundleDisplayName: $(BUNDLE_DISPLAY_NAME)
+        CFBundleName: $(BUNDLE_DISPLAY_NAME)
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        NSLocalNetworkUsageDescription: OpenDisplay Receiver advertises itself on the local network so another Mac can connect and use this Mac as a display.
+        NSLocalNetworkUsageDescription: 无线副屏接收端通过本地网络被发现，让另一台 Mac 把画面发送到这台 Mac。
         NSBonjourServices: ["_opensidecar._tcp"]
-        NSAppleEventsUsageDescription: OpenDisplay Receiver shuts this Mac down when the connected Mac asks it to.
+        NSAppleEventsUsageDescription: 无线副屏接收端会在已连接的 Mac 请求时关闭这台 Mac。
         LSApplicationCategoryType: public.app-category.utilities
-        # Own Sparkle feed (separate DMG, same signing key); published by
-        # release.yml next to the sender's appcast.
-        SUFeedURL: https://raw.githubusercontent.com/mofu2003/opendisplay/main/public/appcast-receiver.xml
-        SUPublicEDKey: 6UtPbiJyqWFo8rmlHV+D4giUbYtrfi0jjjMm9G4O/h0=
+        NSHumanReadableCopyright: "Copyright © 2026 mofu2003. 基于 OpenDisplay，按 GPL-3.0 分发。"
+        SUFeedURL: https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/appcast-receiver.xml
+        SUPublicEDKey: IY7hnXOd1liMKCB+2PuOkh+4K+39Fl5fX5fAItfTCi0=
         SUEnableAutomaticChecks: true
         SUAutomaticallyUpdate: true
         SUScheduledCheckInterval: 21600
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.peetzweg.opensidecar.mac.receiver
-        PRODUCT_NAME: OpenDisplay Receiver
-        BUNDLE_DISPLAY_NAME: OpenDisplay Receiver
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.mofu2003.wirelessscreen.mac.receiver
+        PRODUCT_NAME: WirelessScreenReceiver
+        BUNDLE_DISPLAY_NAME: 无线副屏接收端
         # Log.swift's file locking helpers live in the C bridging header.
         SWIFT_OBJC_BRIDGING_HEADER: Mac/OpenSidecarMac-Bridging-Header.h
         ENABLE_HARDENED_RUNTIME: YES
@@ -152,11 +137,11 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
       configs:
         Debug:
-          PRODUCT_BUNDLE_IDENTIFIER: com.peetzweg.opensidecar.mac.receiver.debug
-          PRODUCT_NAME: OpenDisplay Receiver Dev
-          BUNDLE_DISPLAY_NAME: OpenDisplay Receiver Dev
+          PRODUCT_BUNDLE_IDENTIFIER: io.github.mofu2003.wirelessscreen.mac.receiver.debug
+          PRODUCT_NAME: WirelessScreenReceiver Dev
+          BUNDLE_DISPLAY_NAME: 无线副屏接收端开发版
           ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-Dev
-  OpenSidecarMacTests:
+  WirelessScreenMacTests:
     type: bundle.unit-test
     platform: macOS
     deploymentTarget: "14.0"
@@ -176,6 +161,7 @@ targets:
       - Mac/Log.swift
       - Mac/LogPolicies.swift
       - Shared/Protocol.swift
+      - Shared/ProductIdentity.swift
       - Shared/DirectCable.swift
       - Shared/FrameRateOption.swift
       - Shared/LogSnapshot.swift
@@ -191,7 +177,7 @@ targets:
         # run, which fails the build before a single test executes.
         GENERATE_INFOPLIST_FILE: "YES"
         SWIFT_OBJC_BRIDGING_HEADER: Mac/OpenSidecarMac-Bridging-Header.h
-  OpenSidecariOS:
+  WirelessScreeniOS:
     type: application
     platform: iOS
     # iOS 15 is the lowest floor Xcode 27's SDK allows and the last stop that
@@ -204,7 +190,8 @@ targets:
     info:
       path: iOS/Info.plist
       properties:
-        CFBundleDisplayName: OpenDisplay
+        CFBundleDisplayName: 无线副屏
+        CFBundleName: 无线副屏
         CFBundleIconName: AppIcon
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
@@ -214,7 +201,7 @@ targets:
         # 27 multitasking); the receiver reports whatever window it gets.
         UIRequiresFullScreen: true
         UIRequiresFullScreenIgnoredStartingWithVersion: "27"
-        NSLocalNetworkUsageDescription: OpenDisplay advertises itself on the local network so your Mac can connect over WiFi.
+        NSLocalNetworkUsageDescription: 无线副屏通过本地网络被发现，让 Mac 连接并发送画面。
         NSBonjourServices: ["_opensidecar._tcp"]
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -223,6 +210,6 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.peetzweg.opensidecar.ios
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.mofu2003.wirelessscreen.ios
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

@@ -1,4 +1,4 @@
-// OpenDisplay Receiver: the standalone "this Mac is a display" app (issues
+// 无线副屏接收端: the standalone "this Mac is a display" app (issues
 // #82/#17). It is a separate bundle from the sender on purpose: the sender
 // needs macOS 14 for its capture/virtual-display stack, while receiving only
 // needs the decoder and a window, so this target keeps a much lower
@@ -17,18 +17,19 @@ import Sparkle
 // and hands out File > New; the panel here is one fixed-size window built
 // like the sender's control window (NSHostingView in an NSWindow).
 @main
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class WirelessScreenReceiverApp: NSObject, NSApplicationDelegate {
     static func main() {
         let app = NSApplication.shared
         // NSApplication.delegate is weak, and ARC may free a local after its
         // last use — an optimized build could drop the delegate before the
         // launch callbacks ever fire. run() never returns, so this pins it
         // for the app's lifetime.
-        let delegate = AppDelegate()
+        let delegate = WirelessScreenReceiverApp()
         app.delegate = delegate
         withExtendedLifetime(delegate) { app.run() }
     }
 
+    /// Scheduled and manual Sparkle checks share this one updater.
     let updater = SPUStandardUpdaterController(
         startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
@@ -68,13 +69,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showPanel() {
         if panel == nil {
-            let content = ReceiverContentView(controller: ReceiverController.shared,
-                                              updater: updater)
+            let content = ReceiverContentView(
+                controller: ReceiverController.shared,
+                updater: updater)
             let hosting = NSHostingView(rootView: content)
             let w = NSWindow(contentRect: NSRect(origin: .zero, size: ReceiverContentView.size),
                              styleMask: [.titled, .closable, .miniaturizable],
                              backing: .buffered, defer: false)
-            w.title = "OpenDisplay Receiver"
+            w.title = ProductIdentity.receiverName
             w.contentView = hosting
             w.isReleasedWhenClosed = false
             w.setFrameAutosaveName("ReceiverPanel")
@@ -91,18 +93,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let appItem = NSMenuItem()
         let appMenu = NSMenu()
-        appMenu.addItem(withTitle: "About OpenDisplay Receiver",
+        appMenu.addItem(withTitle: "关于无线副屏接收端",
                         action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
                         keyEquivalent: "")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Check for Updates…",
+        appMenu.addItem(withTitle: "检查更新…",
                         action: #selector(SPUStandardUpdaterController.checkForUpdates(_:)),
                         keyEquivalent: "").target = updater
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Hide OpenDisplay Receiver",
+        appMenu.addItem(withTitle: "隐藏无线副屏接收端",
                         action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         appMenu.addItem(.separator())
-        appMenu.addItem(withTitle: "Quit OpenDisplay Receiver",
+        appMenu.addItem(withTitle: "退出无线副屏接收端",
                         action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         appItem.submenu = appMenu
         main.addItem(appItem)
@@ -146,9 +148,9 @@ struct ReceiverContentView: View {
                     .resizable()
                     .frame(width: 44, height: 44)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("OpenDisplay Receiver")
+                    Text(ProductIdentity.receiverName)
                         .font(.title3.bold())
-                    Text("This Mac as an extra display for another Mac")
+                    Text("把这台 Mac 变成另一台 Mac 的扩展屏")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -175,7 +177,7 @@ struct ReceiverContentView: View {
                 Spacer()
                 Button("Logs") { Log.revealInFinder() }
                     .controlSize(.small)
-                    .help("Reveal the OpenDisplay Receiver log files in Finder")
+                    .help("在访达中显示无线副屏接收端日志文件")
                 if let updater {
                     CheckForUpdatesView(updater: updater)
                 }

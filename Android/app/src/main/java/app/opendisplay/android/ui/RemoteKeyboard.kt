@@ -247,6 +247,6 @@ internal class RemoteKeyboard(
         (value * activity.resources.displayMetrics.density).roundToInt()
 
     private companion object {
-        const val TAG = "OpenDisplay"
+        const val TAG = "WirelessScreen"
     }
 }

@@ -103,6 +103,6 @@ class CursorChannel(
     }
 
     private companion object {
-        const val TAG = "OpenDisplay"
+        const val TAG = "WirelessScreen"
     }
 }

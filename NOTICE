@@ -1,0 +1,16 @@
+无线副屏（WirelessScreen）
+Copyright (C) 2026 mofu2003
+
+This product is based on OpenDisplay:
+https://github.com/peetzweg/opendisplay
+
+OpenDisplay is licensed under the GNU General Public License, version 3.
+Copyright (C) OpenDisplay contributors.
+
+This repository contains a modified version. The changes are documented in
+MODIFICATIONS.md. The complete corresponding source for this product is kept
+in this repository under the same GPL-3.0 terms.
+
+The protocol discovery name `_opensidecar._tcp` is retained for compatibility
+with existing OpenDisplay receivers. It is a wire-protocol identifier, not the
+public name of this product.

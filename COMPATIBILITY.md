@@ -104,11 +104,11 @@ direction and owns the offline/never-connect case.
 
 ## 5. The remote-config force lever (iOS) — issue #135
 
-Connection-independent. On launch the iPhone fetches a small static file we host
-next to the Sparkle appcast:
+Connection-independent. On launch the iPhone may fetch a small static update
+policy file. The independent baseline does not publish that file yet, so an
+unreachable or malformed response is expected and fails open:
 
-- **URL:** `https://opendisplay.app/ios-version.json` (source of truth:
-  `public/ios-version.json`; Vite copies it into `docs/` and Pages serves it).
+- **URL:** `https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/ios-version.json`
 - **Shape:**
   ```json
   {

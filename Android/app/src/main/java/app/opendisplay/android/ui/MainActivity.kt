@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ActivityInfo
 import android.graphics.BitmapFactory
 import android.hardware.usb.UsbAccessory
 import android.hardware.usb.UsbManager
@@ -77,6 +78,11 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
     private var downloadDialog: AlertDialog? = null
     private var macRequestDialog: MacRequestDialog? = null
     private var pendingUpdateFile: File? = null
+    private val automaticUpdateCheck = Runnable {
+        if (!isFinishing && !isDestroyed && onboarding?.isShowing != true) {
+            updates.check(manual = false)
+        }
+    }
     private lateinit var server: ReceiverServer
     private lateinit var advertiser: Advertiser
     private lateinit var decoder: VideoDecoder
@@ -130,6 +136,7 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
         nightMode = resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
         Log.init(this)
         prefs = AppPrefs(this)
+        applyScreenOrientation(prefs.screenOrientation)
         updates = UpdateManager(this, updateListener)
         shake = ShakeDetector(this) { showSettings() }
         installId = DeviceIdentity.installId(this)
@@ -172,15 +179,18 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
             IntentFilter(ACTION_USB_PERMISSION), ContextCompat.RECEIVER_NOT_EXPORTED)
         updatePanel()
         main.post(statsTick)
-        main.postDelayed({ maybeCheckForUpdates() }, 2_000)
-        // First run: OpenDisplay is two apps; say so until the first connection.
-        if (!prefs.hasConnectedBefore && !prefs.onboardingDismissed) showOnboarding()
+        // First run: 无线副屏 is two apps; say so until the first connection.
+        if (!prefs.hasConnectedBefore && !prefs.onboardingDismissed) {
+            showOnboarding()
+        } else {
+            scheduleAutomaticUpdateCheck()
+        }
     }
 
     override fun onResume() {
         super.onResume()
         shake.start()
-        main.postDelayed({ maybeCheckForUpdates() }, 1_000)
+        scheduleAutomaticUpdateCheck()
         pendingUpdateFile?.let { file ->
             if (Build.VERSION.SDK_INT < 26 || packageManager.canRequestPackageInstalls()) {
                 pendingUpdateFile = null
@@ -192,6 +202,7 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
     override fun onPause() {
         super.onPause()
         shake.stop()
+        main.removeCallbacks(automaticUpdateCheck)
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
@@ -202,7 +213,7 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
         val night = newConfig.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
         if (night != nightMode) {
             nightMode = night
-            theme.setTo(resources.newTheme().apply { applyStyle(R.style.Theme_OpenDisplay, true) })
+            theme.setTo(resources.newTheme().apply { applyStyle(R.style.Theme_WirelessScreen, true) })
             onboarding?.takeIf { it.isShowing }?.let { it.setOnDismissListener(null); it.dismiss(); showOnboarding() }
             (supportFragmentManager.findFragmentByTag(SETTINGS) as? SettingsDialog)?.let {
                 it.dismissAllowingStateLoss()
@@ -280,7 +291,7 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
             .setOnDismissListener {
                 prefs.onboardingDismissed = true
                 onboarding = null
-                maybeCheckForUpdates()
+                scheduleAutomaticUpdateCheck()
             }
             .show()
     }
@@ -296,6 +307,21 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
     override fun onNameChanged(name: String?) {
         DeviceIdentity.setServiceName(this, name)
         advertiser.register(DeviceIdentity.serviceName(this), installId)
+    }
+
+    override fun onOrientationChanged(mode: String) {
+        prefs.screenOrientation = mode
+        applyScreenOrientation(mode)
+    }
+
+    private fun applyScreenOrientation(mode: String) {
+        val requested = when (ScreenOrientation.mode(mode)) {
+            ScreenOrientation.Mode.PORTRAIT -> ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            ScreenOrientation.Mode.LANDSCAPE -> ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+            else -> ActivityInfo.SCREEN_ORIENTATION_FULL_USER
+        }
+        Log.i(TAG, "screen orientation preference=$mode requested=$requested current=$requestedOrientation")
+        if (requestedOrientation != requested) requestedOrientation = requested
     }
 
     override fun onOverlayChanged(enabled: Boolean) = refreshIdle()
@@ -370,10 +396,12 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
         override fun onUpToDate(manual: Boolean) {
             prefs.lastUpdateCheck = System.currentTimeMillis()
             if (manual) Toast.makeText(this@MainActivity, R.string.update_up_to_date, Toast.LENGTH_SHORT).show()
+            scheduleAutomaticUpdateCheck()
         }
 
         override fun onUpdateAvailable(release: UpdateRelease, manual: Boolean) {
             prefs.lastUpdateCheck = System.currentTimeMillis()
+            scheduleAutomaticUpdateCheck()
             if (isFinishing || isDestroyed) return
             if (!manual) {
                 // Automatic updates download in the background and then open
@@ -440,6 +468,7 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
             prefs.lastUpdateCheck = System.currentTimeMillis()
             downloadDialog?.dismiss()
             downloadDialog = null
+            scheduleAutomaticUpdateCheck()
             if (!manual || isFinishing || isDestroyed) return
             MaterialAlertDialogBuilder(this@MainActivity)
                 .setTitle(R.string.update_error_title)
@@ -462,11 +491,19 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
         updates.download(release, manual = !automatic)
     }
 
-    private fun maybeCheckForUpdates() {
-        if (isFinishing || isDestroyed || onboarding?.isShowing == true) return
-        val now = System.currentTimeMillis()
-        if (now - prefs.lastUpdateCheck < UPDATE_CHECK_INTERVAL_MS) return
-        updates.check(manual = false)
+    /** Check shortly after launch, then at most every six hours. */
+    private fun scheduleAutomaticUpdateCheck() {
+        if (!::updates.isInitialized || isFinishing || isDestroyed) return
+        if (onboarding?.isShowing == true) return
+
+        main.removeCallbacks(automaticUpdateCheck)
+        val last = prefs.lastUpdateCheck
+        val delay = if (last <= 0L) {
+            FIRST_UPDATE_CHECK_DELAY_MS
+        } else {
+            (last + UPDATE_CHECK_INTERVAL_MS - System.currentTimeMillis()).coerceAtLeast(0L)
+        }
+        main.postDelayed(automaticUpdateCheck, delay)
     }
 
     // endregion
@@ -623,7 +660,7 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
         val wifi = applicationContext.getSystemService(WIFI_SERVICE) as android.net.wifi.WifiManager
         val mode = if (Build.VERSION.SDK_INT >= 29) android.net.wifi.WifiManager.WIFI_MODE_FULL_LOW_LATENCY
         else android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF
-        return wifi.createWifiLock(mode, "OpenDisplay:stream").apply { setReferenceCounted(false) }
+        return wifi.createWifiLock(mode, "WirelessScreen:stream").apply { setReferenceCounted(false) }
     }
 
     // region Panel and hello
@@ -966,8 +1003,9 @@ class MainActivity : AppCompatActivity(), ReceiverServer.Listener, VideoDecoder.
     private fun dp(v: Int) = (v * resources.displayMetrics.density).roundToInt()
 
     companion object {
-        private const val TAG = "OpenDisplay"
+        private const val TAG = "WirelessScreen"
         private const val ACTION_USB_PERMISSION = "app.opendisplay.android.USB_PERMISSION"
+        private const val FIRST_UPDATE_CHECK_DELAY_MS = 15_000L
         private const val UPDATE_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000L
 
         /**

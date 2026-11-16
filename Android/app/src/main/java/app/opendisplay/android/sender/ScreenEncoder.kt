@@ -55,7 +55,7 @@ class ScreenEncoder(
         } catch (_: Exception) {
         }
         virtualDisplay = projection.createVirtualDisplay(
-            "OpenDisplay", width, height, densityDpi,
+            app.opendisplay.android.ProductInfo.DISPLAY_NAME, width, height, densityDpi,
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, surface, null, null)
         running = true
         thread = Thread({ drain() }, "od-encoder").apply { isDaemon = true; start() }

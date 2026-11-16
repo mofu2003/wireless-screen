@@ -12,10 +12,12 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import androidx.fragment.app.DialogFragment
 import androidx.preference.EditTextPreference
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
+import app.opendisplay.android.ProductInfo
 import app.opendisplay.android.R
 import com.google.android.material.appbar.MaterialToolbar
 
@@ -32,13 +34,14 @@ class SettingsDialog : DialogFragment() {
         val streamSummary: String?
         val uiKind: String
         fun onNameChanged(name: String?)
+        fun onOrientationChanged(mode: String)
         fun onOverlayChanged(enabled: Boolean)
         fun checkForUpdates(manual: Boolean)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setStyle(STYLE_NO_TITLE, R.style.Theme_OpenDisplay_Sheet)
+        setStyle(STYLE_NO_TITLE, R.style.Theme_WirelessScreen_Sheet)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, saved: Bundle?): View {
@@ -98,6 +101,31 @@ class SettingsDialog : DialogFragment() {
                 addPreference(info(R.string.row_listening, getString(R.string.row_listening_value)))
                 connection = info(R.string.row_connection, null).also { addPreference(it) }
                 stream = info(R.string.row_stream, null).also { addPreference(it) }
+            }
+
+            screen.category(R.string.section_display) {
+                addPreference(ListPreference(ctx).apply {
+                    key = AppPrefs.KEY_SCREEN_ORIENTATION
+                    title = getString(R.string.screen_orientation)
+                    entries = arrayOf(
+                        getString(R.string.screen_orientation_auto),
+                        getString(R.string.screen_orientation_portrait),
+                        getString(R.string.screen_orientation_landscape),
+                    )
+                    entryValues = arrayOf(
+                        AppPrefs.ORIENTATION_AUTO,
+                        AppPrefs.ORIENTATION_PORTRAIT,
+                        AppPrefs.ORIENTATION_LANDSCAPE,
+                    )
+                    setDefaultValue(AppPrefs.ORIENTATION_AUTO)
+                    summaryProvider = ListPreference.SimpleSummaryProvider.getInstance()
+                    isIconSpaceReserved = false
+                    setOnPreferenceChangeListener { _, value ->
+                        host.onOrientationChanged(value as String)
+                        true
+                    }
+                })
+                addPreference(footer(getString(R.string.screen_orientation_footer)))
             }
 
             screen.category(R.string.section_name) {
@@ -228,6 +256,6 @@ class SettingsDialog : DialogFragment() {
     }
 
     companion object {
-        const val MAC_APP_URL = "https://github.com/mofu2003/opendisplay/releases/latest"
+        const val MAC_APP_URL = ProductInfo.LATEST_RELEASE_URL
     }
 }

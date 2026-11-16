@@ -30,7 +30,7 @@ struct ReceiverSections: View {
         }
 
         Section("How to connect") {
-            Label("Install and open OpenDisplay on the Mac whose screen you want to extend.",
+            Label("在要扩展屏幕的 Mac 上安装并打开无线副屏。",
                   systemImage: "macbook.and.macbook")
             Label("With both Macs on the same network, this Mac appears in its Devices list — click Connect there.",
                   systemImage: "wifi")
@@ -87,7 +87,8 @@ private struct ReceiverStatusSection: View {
     }
 
     /// Compatibility copy from the sender (issue #132) — surfaced inline;
-    /// the Mac app has Sparkle, so there is no blocking gate like on iOS.
+    /// the Mac app updates from its own release channel, so there is no
+    /// blocking gate like on iOS.
     private var peerMessage: String? {
         switch receiver.peerSignal {
         case let .updateReceiver(message, _): return message

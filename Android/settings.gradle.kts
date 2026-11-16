@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "OpenDisplayAndroid"
+rootProject.name = "WirelessScreenAndroid"
 include(":app")

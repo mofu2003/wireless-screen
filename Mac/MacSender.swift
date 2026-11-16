@@ -85,7 +85,7 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
     private let quality: StreamQuality
     private let frameRate: FrameRateOption
     // Stable per-device serial for the virtual display, so macOS can tell
-    // multiple OpenDisplay monitors apart and persist their arrangement.
+    // multiple 无线副屏 monitors apart and persist their arrangement.
     private let displaySerial: UInt32
     // How far this device's identity has already moved off its base serial
     // and productID (identities macOS saved hostile state for are abandoned
@@ -216,7 +216,7 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
     // capture→encode→stream→display latency (~30ms perceived). Instead we
     // hide it from capture and stream its position on the control channel —
     // the phone draws it locally on the ~2ms path the touches use.
-    // Escape hatch: `defaults write com.peetzweg.opensidecar.mac localCursor -bool false`.
+    // Escape hatch: `defaults write io.github.mofu2003.wirelessscreen.mac localCursor -bool false`.
     private let localCursor = UserDefaults.standard.object(forKey: "localCursor") == nil
         || UserDefaults.standard.bool(forKey: "localCursor")
     // Cursor sampling must not share ScreenCaptureKit's serial callback queue:
@@ -712,8 +712,8 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
         // USB sessions can start before lockdown resolves the device name —
         // fall back to the kind from the hello rather than the generic label.
         let displayName = endpointName.hasPrefix("iPhone / iPad")
-            ? "OpenDisplay — \(info.kind)"
-            : "OpenDisplay — \(endpointName)"
+            ? "\(ProductIdentity.name) — \(info.kind)"
+            : "\(ProductIdentity.name) — \(endpointName)"
         // Keep one stable identity across rotations. Reconfiguration below
         // applies a new mode to the existing virtual monitor, so macOS keeps
         // its windows and arrangement attached to this physical device.
@@ -831,7 +831,7 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
             if sawPoisonedIdentity {
                 throw NSError(domain: "MacSender", code: 5, userInfo: [
                     NSLocalizedDescriptionKey: "saved display state in macOS is blocking "
-                        + "OpenDisplay's displays — log out and back in (or restart the Mac), then reconnect"])
+                        + "无线副屏的显示器 — log out and back in (or restart the Mac), then reconnect"])
             }
             throw identityError
         }
@@ -878,7 +878,7 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
                                receiver: info)
         try ensureActiveDisplay(vd)
 
-        // Debug aid (`defaults write com.peetzweg.opensidecar.mac testPattern -bool true`):
+        // Debug aid (`defaults write io.github.mofu2003.wirelessscreen.mac testPattern -bool true`):
         // an animated window on the virtual display generates a constant frame
         // stream so steady-state latency can be measured without user activity.
         if UserDefaults.standard.bool(forKey: "testPattern") {
@@ -2191,15 +2191,15 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
                             hint = String(localized: "\(self.endpointName) is asleep — reconnects when it wakes…")
                         } else if self.everConnected {
                             self.dialRefused()
-                            hint = String(localized: "Device found — open the OpenDisplay app on it…")
+                            hint = String(localized: "Device found — open the 无线副屏 app on it…")
                         } else {
                             // Never answered: end like a receiver that quit, so
                             // auto-connect leaves the device alone until it is
                             // replugged or connected by hand.
-                            hint = String(localized: "Install OpenDisplay on the Android device and allow it to use the USB accessory")
+                            hint = String(localized: "Install 无线副屏 on the Android device and allow it to use the USB accessory")
                             if !self.goneReported, !self.stopped {
                                 self.goneReported = true
-                                Log.info("OpenDisplay did not open on the Android device — ending session")
+                                Log.info("无线副屏 did not open on the Android device — ending session")
                                 Task { @MainActor in self.onPeerClosed?() }
                             }
                         }
@@ -2207,7 +2207,7 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
                         self.dialRefused()
                         hint = self.awaitingWake
                             ? String(localized: "\(self.endpointName) is asleep — reconnects when it wakes…")
-                            : String(localized: "Device found — open the OpenDisplay app on it…")
+                            : String(localized: "Device found — open the 无线副屏 app on it…")
                     default:
                         Log.info("usb dial failed: \(error)")
                         hint = String(localized: "USB connection failed: \(error.localizedDescription)")
@@ -3335,19 +3335,16 @@ final class MacSender: NSObject, SCStreamOutput, SCStreamDelegate {
 
     /// Ask the receiver to update (built via JSONSerialization because the
     /// message text is user-facing prose). Dormant while minSupportedPeer is
-    /// 1, but the copy must fit the platform the day a floor is raised: a
-    /// Mac receiver updates via Sparkle/the site, not the App Store.
+    /// 1, but the copy must fit the platform the day a floor is raised.
     private func sendUpdateRequired(kind: String) {
         let isMac = kind == "Mac"
         let dict: [String: Any] = [
             "type": WireMessage.updateRequired,
             "target": isMac ? "mac" : "ios",
-            "store": isMac
-                ? "https://github.com/mofu2003/opendisplay/releases/latest"
-                : AppStore.updateURL.absoluteString,
+            "store": ProductIdentity.latestReleaseURL,
             "message": isMac
-                ? "The OpenDisplay Receiver app on that Mac is too old for this Mac. Use Check for Updates… there to reconnect."
-                : "This \(kind) app is too old for this Mac. Update OpenDisplay from the App Store to reconnect.",
+                ? "那台 Mac 上的无线副屏接收端版本过旧，请更新后再连接。"
+                : "这台 \(kind) 上的无线副屏版本过旧，请更新后再连接。",
         ]
         if let data = try? JSONSerialization.data(withJSONObject: dict),
            let json = String(data: data, encoding: .utf8) {

@@ -21,7 +21,7 @@ object Log {
     @Volatile private var file: File? = null
 
     fun init(context: Context) {
-        file = File(context.filesDir, "opendisplay-receiver.log")
+        file = File(context.filesDir, "wirelessscreen-receiver.log")
     }
 
     fun i(tag: String, message: String) {

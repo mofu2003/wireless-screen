@@ -69,5 +69,5 @@ object DecoderCaps {
             name.contains(".sw.") || name.startsWith("omx.ffmpeg"))
     }
 
-    private const val TAG = "OpenDisplay"
+    private const val TAG = "WirelessScreen"
 }

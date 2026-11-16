@@ -39,7 +39,7 @@ class ShakeDetector(context: Context, private val onShake: () -> Unit) : SensorE
         val shake = now - lastJolt in 80..700 && now - lastShake > 1500
         if (shake) {
             lastShake = now
-            Log.i("OpenDisplay", "shake: opening settings")
+            Log.i("WirelessScreen", "shake: opening settings")
         }
         lastJolt = now
         return shake

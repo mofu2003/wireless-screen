@@ -10,6 +10,10 @@ class AppPrefs(context: Context) {
         get() = prefs.getBoolean(KEY_SHOW_ANALYTICS, false)
         set(v) = prefs.edit().putBoolean(KEY_SHOW_ANALYTICS, v).apply()
 
+    var screenOrientation: String
+        get() = prefs.getString(KEY_SCREEN_ORIENTATION, ORIENTATION_AUTO) ?: ORIENTATION_AUTO
+        set(v) = prefs.edit().putString(KEY_SCREEN_ORIENTATION, v).apply()
+
     var hasConnectedBefore: Boolean
         get() = prefs.getBoolean("hasConnectedBefore", false)
         set(v) = prefs.edit().putBoolean("hasConnectedBefore", v).apply()
@@ -25,5 +29,9 @@ class AppPrefs(context: Context) {
     companion object {
         const val FILE = "settings"
         const val KEY_SHOW_ANALYTICS = "showAnalytics"
+        const val KEY_SCREEN_ORIENTATION = "screenOrientation"
+        const val ORIENTATION_AUTO = "auto"
+        const val ORIENTATION_PORTRAIT = "portrait"
+        const val ORIENTATION_LANDSCAPE = "landscape"
     }
 }

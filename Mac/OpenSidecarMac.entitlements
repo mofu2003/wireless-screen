@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict/>
+<dict>
+	<!-- Release builds are ad-hoc signed because this project does not have an
+	     Apple Developer ID. Sparkle.framework is embedded by the app bundle;
+	     disable library validation so the updater can still load under the
+	     hardened runtime. Replace this with a Developer ID signature before
+	     distributing the app broadly. -->
+	<key>com.apple.security.cs.disable-library-validation</key>
+	<true/>
+</dict>
 </plist>

@@ -7,11 +7,11 @@ import Combine
 /// "iPad" or "iPhone" — so UI copy names the device the user is holding.
 let deviceKind = UIDevice.current.userInterfaceIdiom == .pad ? "iPad" : "iPhone"
 
-/// Fork release page — hosts the Mac app download and explains the setup.
-let macAppURL = URL(string: "https://github.com/mofu2003/opendisplay/releases/latest")!
+/// Own release page — hosts the Mac app download and explains the setup.
+let macAppURL = URL(string: ProductIdentity.latestReleaseURL)!
 
 @main
-struct OpenSidecarPhoneApp: App {
+struct WirelessScreenPhoneApp: App {
     var body: some Scene {
         WindowGroup {
             ReceiverScreen()
@@ -193,7 +193,7 @@ struct IdleView: View {
                 .frame(width: 132)
 
             VStack(spacing: 6) {
-                Text("OpenDisplay")
+                Text(ProductIdentity.name)
                     .font(.largeTitle.bold())
                 HStack(spacing: 8) {
                     Circle()
@@ -206,9 +206,9 @@ struct IdleView: View {
             }
 
             VStack(alignment: .leading, spacing: 14) {
-                HintRow("Plug in the USB cable and open OpenDisplay on your computer",
+                HintRow("Plug in the USB cable and open \(ProductIdentity.name) on your computer",
                         systemImage: "cable.connector")
-                HintRow("Or pick this \(deviceKind) under WiFi in OpenDisplay on your computer",
+                HintRow("Or pick this \(deviceKind) under WiFi in \(ProductIdentity.name) on your computer",
                         systemImage: "wifi")
                 HintRow("Keep this app open. Streaming starts automatically.",
                         systemImage: "play.circle")
@@ -265,7 +265,7 @@ struct HintRow: View {
 
 // MARK: - First-run onboarding (the Mac app is required to connect)
 
-/// Shown on first launch / while the device has never connected: OpenDisplay
+/// Shown on first launch / while the device has never connected: 无线副屏
 /// is two apps, and the iOS side is useless without the Mac app running.
 struct OnboardingView: View {
     @Environment(\.dismiss) private var dismiss
@@ -284,7 +284,7 @@ struct OnboardingView: View {
                         Text("One more app to go")
                             .font(.title2.bold())
                             .multilineTextAlignment(.center)
-                        Text("OpenDisplay turns this \(deviceKind) into a second screen for your Mac. It needs the **OpenDisplay Mac app** running on a Mac connected by the same USB cable or on the same WiFi network.")
+                        Text("\(ProductIdentity.name) turns this \(deviceKind) into a second screen for your Mac. It needs the **\(ProductIdentity.name) Mac app** running on a Mac connected by the same USB cable or on the same WiFi network.")
                             .font(.body)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -292,7 +292,7 @@ struct OnboardingView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 14) {
-                        HintRow("Install the OpenDisplay Mac app on your Mac", systemImage: "1.circle.fill")
+                        HintRow("Install the \(ProductIdentity.name) Mac app on your Mac", systemImage: "1.circle.fill")
                         HintRow("Connect the \(deviceKind) by USB, or join the same WiFi", systemImage: "2.circle.fill")
                         HintRow("Keep this app open. Streaming starts automatically.", systemImage: "3.circle.fill")
                     }
@@ -366,7 +366,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Name")
                 } footer: {
-                    Text("Shown in the WiFi list of OpenDisplay on your computer. iOS hides this \(deviceKind)'s real name from apps, so set it here once.")
+                    Text("Shown in the WiFi list of \(ProductIdentity.name) on your computer. iOS hides this \(deviceKind)'s real name from apps, so set it here once.")
                 }
 
                 Section {
@@ -379,7 +379,7 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Button("Open iOS Settings for OpenDisplay") {
+                    Button("Open iOS Settings for \(ProductIdentity.name)") {
                         if let url = URL(string: UIApplication.openSettingsURLString) {
                             UIApplication.shared.open(url)
                         }
@@ -387,7 +387,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Permissions")
                 } footer: {
-                    Text("WiFi mode needs Local Network access. If your computer can't find this \(deviceKind), enable it under Settings → Privacy & Security → Local Network → OpenDisplay. USB mode works without it.")
+                    Text("WiFi mode needs Local Network access. If your computer can't find this \(deviceKind), enable it under Settings → Privacy & Security → Local Network → \(ProductIdentity.name). USB mode works without it.")
                 }
 
                 Section {
@@ -403,9 +403,9 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Label("USB: plug in the cable and open OpenDisplay on your computer. It connects through the wire on its own (lowest latency).",
+                    Label("USB: plug in the cable and open \(ProductIdentity.name) on your computer. It connects through the wire on its own (lowest latency).",
                           systemImage: "cable.connector")
-                    Label("WiFi: both devices on the same network, then pick this \(deviceKind) in OpenDisplay on your computer.",
+                    Label("WiFi: both devices on the same network, then pick this \(deviceKind) in \(ProductIdentity.name) on your computer.",
                           systemImage: "wifi")
                     Label("Rotate the \(deviceKind) for a vertical second monitor.",
                           systemImage: "rotate.right")
@@ -420,14 +420,14 @@ struct SettingsView: View {
                         Label("Get the Mac app", systemImage: "arrow.down.circle")
                     }
                 } footer: {
-                    Text("OpenDisplay needs the Mac app running on a Mac on the same cable or WiFi network. Download it here if you haven't yet.")
+                    Text("\(ProductIdentity.name) needs the Mac app running on a Mac on the same cable or WiFi network. Download it here if you haven't yet.")
                 }
 
                 Section("About") {
                     LabeledRow("Version", value: version)
                 }
             }
-            .navigationTitle("OpenDisplay")
+            .navigationTitle(ProductIdentity.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

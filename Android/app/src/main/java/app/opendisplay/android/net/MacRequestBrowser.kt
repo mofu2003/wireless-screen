@@ -141,6 +141,6 @@ class MacRequestBrowser(
         targets.values.sortedBy { it.name.lowercase() })
 
     private companion object {
-        const val TAG = "OpenDisplay"
+        const val TAG = "WirelessScreen"
     }
 }

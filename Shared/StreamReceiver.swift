@@ -1,4 +1,4 @@
-// StreamReceiver — the listening half of OpenDisplay: receive video over
+// StreamReceiver — the listening half of 无线副屏: receive video over
 // TCP and display it. Compiled into BOTH targets (see project.yml): it is
 // the iOS app's core, and the Mac app's receiver mode (issue #82) reuses it
 // unchanged to turn a spare Mac into a display.
@@ -232,7 +232,7 @@ final class StreamReceiver: ObservableObject {
     // needs an entitlement Apple gates behind approval and personal teams
     // can't get), so this is user-editable in Settings. The USB picker gets
     // the real name host-side via lockdownd regardless.
-    var serviceName = "OpenDisplay"
+    var serviceName = ProductIdentity.name
 
     // Platform identity, injected at init so this file stays UI-framework-free.
     /// "iPhone" / "iPad" / "Mac" — announced in the hello (the sender names
@@ -849,7 +849,7 @@ final class StreamReceiver: ObservableObject {
                 self.macProtocolVersion = macPV
             }
             if macPV < WireProtocol.minSupportedPeer {
-                let msg = "OpenDisplay on the connecting computer is too old for this \(deviceKind) app. Update it there to reconnect."
+                let msg = "连接电脑上的无线副屏版本过旧，已无法连接这台 \(deviceKind)。请在电脑端更新后重试。"
                 DispatchQueue.main.async { self.peerSignal = .updateMac(message: msg) }
             }
         case WireMessage.streamConfig:
@@ -882,10 +882,11 @@ final class StreamReceiver: ObservableObject {
             Log.info("power \(action.rawValue) requested by the sender")
             DispatchQueue.main.async { self.onPowerAction?(action) }
         case WireMessage.updateRequired:
-            // The Mac refuses this pairing until we update from the App Store.
+            // The Mac refuses this pairing until we install a compatible build.
             let message = obj["message"] as? String
-                ?? "Update OpenDisplay from the App Store to keep using your second display."
-            let store = (obj["store"] as? String).flatMap { URL(string: $0) } ?? AppStore.updateURL
+                ?? "请更新无线副屏后继续使用副屏。"
+            let store = (obj["store"] as? String).flatMap { URL(string: $0) }
+                ?? URL(string: ProductIdentity.latestReleaseURL)!
             DispatchQueue.main.async { self.peerSignal = .updateReceiver(message: message, storeURL: store) }
         default:
             break

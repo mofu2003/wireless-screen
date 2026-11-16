@@ -7,7 +7,7 @@
     <string name="request_mac_title">Connect from this device</string>
     <string name="request_mac_searching">Looking for Macs that can start a stream…</string>
     <string name="request_mac_choose">Choose the Mac to connect to.</string>
-    <string name="request_mac_none">No Mac found. Open OpenDisplay on a Mac on this WiFi and allow connection requests in its settings.</string>
+    <string name="request_mac_none">No Mac found. Open WirelessScreen on a Mac on this WiFi and allow connection requests in its settings.</string>
     <string name="request_mac_search_failed">Could not search for Macs. Check WiFi and Local Network access.</string>
     <string name="request_mac_requesting">Asking %1$s to connect…</string>
     <string name="request_mac_waiting">%1$s accepted. Waiting for the picture…</string>
@@ -15,7 +15,7 @@
     <string name="request_mac_retrying">The Mac is still finding this device. Retrying %1$s…</string>
     <string name="request_mac_failed">Could not contact the Mac: %1$s</string>
     <string name="request_mac_unknown">This Mac only accepts requests from known devices. Connect once from the Mac, or turn on “Allow unrecognized devices” in its settings.</string>
-    <string name="request_mac_disabled">Connection requests are off on this Mac. Open OpenDisplay there and turn on “Allow devices to request this Mac”.</string>
+    <string name="request_mac_disabled">Connection requests are off on this Mac. Open WirelessScreen there and turn on “Allow devices to request this Mac”.</string>
     <string name="request_mac_not_visible">The Mac cannot see this device yet. Keep this screen open and try again.</string>
     <string name="request_mac_unavailable">The Mac could not start the connection. Try again.</string>
     <string name="sender_title">Cast to Mac</string>
@@ -25,7 +25,7 @@
     <string name="sender_start">Start casting</string>
     <string name="sender_stop">Stop casting</string>
     <string name="sender_accessibility">Enable input control</string>
-    <string name="sender_hint">On the Mac, open OpenDisplay and turn on \"Use this Mac as a display\". Both devices must be on the same WiFi.</string>
+    <string name="sender_hint">On the Mac, open WirelessScreen and turn on \"Use this Mac as a display\". Both devices must be on the same WiFi.</string>
     <string name="sender_searching">Searching for a Mac…</string>
     <string name="sender_not_found">No Mac found. Enter its address manually.</string>
     <string name="sender_not_mac">That device is not a Mac receiver.</string>
@@ -35,7 +35,7 @@
     <string name="sender_stopped">Stopped.</string>
     <string name="sender_error">Could not start: %1$s</string>
     <string name="sender_retrying">Connection failed, retrying (%1$d/%2$d)…</string>
-    <string name="sender_connect_failed">Could not connect to the Mac: %1$s. Make sure Receive a screen is on, both devices share the same Wi-Fi, and the firewall allows OpenDisplay.</string>
+    <string name="sender_connect_failed">Could not connect to the Mac: %1$s. Make sure Receive a screen is on, both devices share the same Wi-Fi, and the firewall allows WirelessScreen.</string>
     <string name="sender_timeout">connection timed out</string>
     <string name="sender_refused">connection refused — is “Receive a screen” enabled on the Mac?</string>
     <string name="sender_bad_host">invalid Mac address</string>
@@ -51,13 +51,13 @@
     <string name="sender_input_enabled">On — click and type from the Mac.</string>
     <string name="sender_scan_hint">Search finds a Mac that has receiver mode turned on.</string>
     <!-- Mirrors the iOS receiver's copy (iOS/OpenSidecarPhoneApp.swift). -->
-    <string name="title">OpenDisplay</string>
+    <string name="title">无线副屏</string>
     <string name="status_ready">Ready to connect</string>
     <string name="status_waiting_picture">Connected, waiting for the picture…</string>
-    <string name="receiver_mac_input_unavailable">The Mac has not granted Accessibility, so touches on this tablet cannot control it. Enable OpenDisplay under System Settings → Privacy &amp; Security → Accessibility on the Mac.</string>
-    <string name="update_sender">OpenDisplay on the connecting Mac is too old for this app. Update it there to reconnect.</string>
+    <string name="receiver_mac_input_unavailable">The Mac has not granted Accessibility, so touches on this tablet cannot control it. Enable WirelessScreen under System Settings → Privacy &amp; Security → Accessibility on the Mac.</string>
+    <string name="update_sender">WirelessScreen on the connecting Mac is too old for this app. Update it there to reconnect.</string>
 
-    <string name="hint_open_mac">Open OpenDisplay on your computer</string>
+    <string name="hint_open_mac">Open WirelessScreen on your computer</string>
     <string name="hint_request_mac">Tap “Ask Mac to connect” here</string>
     <string name="hint_pick_wifi">Or pick this %1$s under WiFi on your computer</string>
     <string name="hint_keep_open">Keep this app open. Streaming starts automatically.</string>
@@ -65,8 +65,8 @@
     <string name="shake_tip">Tip: shake the %1$s to open settings anytime</string>
 
     <string name="onboarding_title">One more app to go</string>
-    <string name="onboarding_body">OpenDisplay turns this %1$s into a second screen for your Mac. It needs the OpenDisplay Mac app running on a Mac on the same WiFi network.</string>
-    <string name="onboarding_step1">Install the OpenDisplay Mac app on your Mac</string>
+    <string name="onboarding_body">WirelessScreen turns this %1$s into a second screen for your Mac. It needs the WirelessScreen Mac app running on a Mac on the same WiFi network.</string>
+    <string name="onboarding_step1">Install the WirelessScreen Mac app on your Mac</string>
     <string name="onboarding_step2">Join the same WiFi as your Mac</string>
     <string name="onboarding_footer">You can find this link again anytime in Settings: shake the %1$s to open it.</string>
     <string name="get_mac_app">Get the Mac app</string>
@@ -76,6 +76,12 @@
     <string name="share">Share</string>
 
     <string name="section_status">Status</string>
+    <string name="section_display">Display</string>
+    <string name="screen_orientation">Screen orientation</string>
+    <string name="screen_orientation_auto">Follow device</string>
+    <string name="screen_orientation_portrait">Portrait</string>
+    <string name="screen_orientation_landscape">Landscape</string>
+    <string name="screen_orientation_footer">Automatic follows the device rotation settings. Portrait and landscape keep the receiver fixed.</string>
     <string name="row_listening">Listening</string>
     <string name="row_listening_value">Port 9000</string>
     <string name="row_connection">Connection</string>
@@ -83,7 +89,7 @@
     <string name="row_waiting">Waiting for a computer</string>
     <string name="row_stream">Stream</string>
     <string name="section_name">Name</string>
-    <string name="name_footer">Shown in the WiFi list of OpenDisplay on your computer.</string>
+    <string name="name_footer">Shown in the WiFi list of WirelessScreen on your computer.</string>
     <string name="section_analytics">Analytics</string>
     <string name="performance_overlay">Performance overlay</string>
     <string name="analytics_footer">The overlay shows FPS, bitrate, decode time and latency at the bottom of the screen while streaming.</string>
@@ -92,16 +98,16 @@
     <string name="log_empty">Nothing logged yet.</string>
     <string name="diagnostics_footer">What this %1$s saw while connecting: sessions, restarts, decoder trouble. No screen content and nothing leaves the %1$s unless you share it. Save the log if you need to troubleshoot a connection.</string>
     <string name="section_how">How to connect</string>
-    <string name="how_wifi">WiFi: both devices on the same network, then pick this %1$s in OpenDisplay on your computer.</string>
+    <string name="how_wifi">WiFi: both devices on the same network, then pick this %1$s in WirelessScreen on your computer.</string>
     <string name="how_rotate">Rotate the %1$s for a vertical second monitor.</string>
     <string name="how_touch">Touch: tap to click, two-finger tap for right-click, drag to move, two-finger pan to scroll. Use the floating keyboard button to type from this %1$s.</string>
     <string name="how_pen">Pen: draw with pressure and tilt. Fingers are ignored while the pen touches.</string>
     <string name="remote_keyboard">Type to Mac</string>
-    <string name="mac_app_footer">OpenDisplay needs the Mac app running on a Mac on the same WiFi network. Download it here if you haven\'t yet.</string>
+    <string name="mac_app_footer">WirelessScreen needs the Mac app running on a Mac on the same WiFi network. Download it here if you haven\'t yet.</string>
     <string name="section_about">About</string>
     <string name="row_version">Version</string>
     <string name="check_for_updates">Check for updates</string>
-    <string name="check_for_updates_summary">Checks automatically in the background, downloads verified updates, and opens Android’s installer.</string>
+    <string name="check_for_updates_summary">Checks GitHub Releases automatically and installs signed APKs through Android’s installer.</string>
     <string name="update_checking">Checking for updates…</string>
     <string name="update_up_to_date">You have the latest version.</string>
     <string name="update_available_title">Update available</string>
@@ -114,7 +120,7 @@
     <string name="update_ready_message">The APK was verified. Android will ask you to confirm installation.</string>
     <string name="update_install">Install now</string>
     <string name="update_permission_title">Allow app installation</string>
-    <string name="update_permission_message">Android requires you to allow “Install unknown apps” for OpenDisplay before it can install the downloaded update.</string>
+    <string name="update_permission_message">Android requires you to allow “Install unknown apps” for WirelessScreen before it can install the downloaded update.</string>
     <string name="update_open_settings">Open settings</string>
     <string name="update_cancel">Cancel</string>
     <string name="update_error_title">Update failed</string>
@@ -126,5 +132,5 @@
     <string name="update_error_missing_file">The downloaded APK is missing.</string>
     <string name="update_error_installer">No APK installer is available on this device.</string>
     <string name="update_error_settings">Could not open the app installation settings.</string>
-    <string name="update_manifest_url" translatable="false">https://raw.githubusercontent.com/mofu2003/opendisplay/main/public/android-version.json</string>
+    <string name="update_manifest_url" translatable="false">https://raw.githubusercontent.com/mofu2003/wireless-screen/main/public/android-version.json</string>
 </resources>

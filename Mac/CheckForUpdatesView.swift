@@ -1,8 +1,8 @@
 import SwiftUI
 import Sparkle
 
-/// "Check for Updates…" button wired to Sparkle. Follows Sparkle 2's
-/// documented SwiftUI pattern: a small view model publishes the updater's
+/// "检查更新…" button wired to Sparkle. Follows Sparkle 2's documented
+/// SwiftUI pattern: a small view model publishes the updater's
 /// `canCheckForUpdates` so the button disables itself while a check is
 /// already running (or the updater isn't ready). Shared by the sender and
 /// the receiver app.
@@ -30,5 +30,3 @@ struct CheckForUpdatesView: View {
             .disabled(!viewModel.canCheckForUpdates)
     }
 }
-
-/// One connected device: live status, throughput, reconnect + disconnect.

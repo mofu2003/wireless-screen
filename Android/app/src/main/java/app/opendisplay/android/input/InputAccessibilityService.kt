@@ -121,7 +121,7 @@ class InputAccessibilityService : AccessibilityService() {
 
     private fun paste(text: String) {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-        clipboard?.setPrimaryClip(ClipData.newPlainText("OpenDisplay", text))
+        clipboard?.setPrimaryClip(ClipData.newPlainText(app.opendisplay.android.ProductInfo.DISPLAY_NAME, text))
         rootInActiveWindow?.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
             ?.performAction(AccessibilityNodeInfo.ACTION_PASTE)
     }

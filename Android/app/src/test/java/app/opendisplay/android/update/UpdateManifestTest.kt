@@ -13,7 +13,7 @@ class UpdateManifestTest {
             {
               "versionCode": 1300308,
               "versionName": "1.30.3-zh.8",
-              "apkUrl": "https://github.com/mofu2003/opendisplay/releases/download/v1.30.3-zh.8/OpenDisplay-Android.apk",
+              "apkUrl": "https://github.com/mofu2003/wireless-screen/releases/download/v1.30.3-zh.8/WirelessScreen-Android.apk",
               "sha256": "67DBC1B9D32CFAF9CA9B22CBDE4F33D17CDDE21983E288BA417C6E69754B5854",
               "notes": "  修复更新流程  "
             }

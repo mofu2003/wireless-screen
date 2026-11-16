@@ -1,9 +1,0 @@
-{
-  "_comment": "iOS/iPadOS update policy for this fork. hardMinimumVersion is the force floor; recommendedVersion is the soft-nag threshold. The app fails open: if this file is unreachable or malformed, no gate is shown.",
-  "ios": {
-    "hardMinimumVersion": "0.0.0",
-    "recommendedVersion": "1.12.0",
-    "storeURL": "https://github.com/mofu2003/opendisplay/releases/latest",
-    "message": "A newer version of OpenDisplay is available with important fixes. Update to keep your second display working smoothly."
-  }
-}

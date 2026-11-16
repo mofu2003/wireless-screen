@@ -19,7 +19,7 @@ import com.google.android.material.appbar.MaterialToolbar
 class LogDialog : DialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setStyle(STYLE_NO_TITLE, R.style.Theme_OpenDisplay_Sheet)
+        setStyle(STYLE_NO_TITLE, R.style.Theme_WirelessScreen_Sheet)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, saved: Bundle?): View {
@@ -38,7 +38,7 @@ class LogDialog : DialogFragment() {
             setOnMenuItemClickListener {
                 startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, "OpenDisplay connection log")
+                    putExtra(Intent.EXTRA_SUBJECT, "无线副屏连接日志")
                     putExtra(Intent.EXTRA_TEXT, log)
                 }, null))
                 true

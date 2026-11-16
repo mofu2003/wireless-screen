@@ -41,11 +41,11 @@ enum AOA {
     /// must match the receiver's accessory_filter.xml; the URI is what
     /// Android offers when no installed app matches.
     static let identity = [
-        "OpenDisplay",                  // manufacturer
-        "OpenDisplay Receiver",         // model
+        "WirelessScreen",               // manufacturer
+        "WirelessScreen Receiver",      // model
         "Second display over USB",      // description
         "1",                            // version
-        "https://github.com/mofu2003/opendisplay", // URI
+        ProductIdentity.repositoryURL,  // URI
         "1",                            // serial
     ]
 
@@ -68,7 +68,7 @@ enum AOA {
             case .noDevice: return "Android device not attached"
             case .notSupported: return "device does not support USB accessory mode"
             case .notAccessory: return "device did not switch to accessory mode"
-            case .noApp: return "OpenDisplay did not open on the device"
+            case .noApp: return "无线副屏没有在设备上打开"
             case .noInterface: return "accessory exposes no bulk endpoints"
             case .busy: return "another app (usually adb) is using the device; `adb kill-server` frees it"
             }

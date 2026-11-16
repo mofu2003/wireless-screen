@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.1.0] - 2026-11-16
+
+### 独立产品基线
+
+- 产品更名为“无线副屏”，替换 macOS/Android 应用身份、图标和主要界面文案。
+- 新 Bundle ID 与 applicationId 允许与原产品并排安装。
+- 替换 AOA manufacturer/model，并同步 macOS 与 Android 两端。
+- 新增 `NOTICE`、`MODIFICATIONS.md` 和独立构建/发布说明。
+- Android 设置新增屏幕方向选择：跟随设备、固定竖屏、固定横屏。
+
+### 自动更新
+
+- macOS Sender 与 Receiver 接入 Sparkle 2.10.1，使用自有 EdDSA 密钥、
+  GitHub Release appcast 和定时后台检查。
+- Android 恢复每 6 小时自动检查、APK 下载、SHA-256 校验和系统安装流程。
+- 新增 tag 触发的 Release 工作流，自动发布签名产物并回写更新清单。
+- 增加 Android Release 签名资料和 macOS ad-hoc 签名配置。
+
+### 验证
+
+- macOS：168 项测试通过，Sender 与 Receiver 可编译。
+- Android：单元测试、Lint 和 Debug APK 构建通过。
+- Android Release APK 通过 v1/v2/v3 签名校验。
+- 本轮未连接 Android 平板进行触控和输入法真机复测。
+
+## Unreleased
+
 ## [1.30.3](https://github.com/peetzweg/opendisplay/compare/v1.30.2...v1.30.3) (2026-11-14)
 
 

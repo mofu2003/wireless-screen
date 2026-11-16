@@ -8,14 +8,14 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.peetzweg.opendisplay"
+        applicationId = "io.github.mofu2003.wirelessscreen"
         // Google Play rejects bundles below API 24 (its automatic protection
         // requires it), so Play builds pass -PappMinSdk=24. The GitHub APK
         // keeps 21 for Android 5 and 6 devices.
         minSdk = (findProperty("appMinSdk") as String?)?.toInt() ?: 21
         targetSdk = 36
-        // CI passes the shared repo version (release-please) as Gradle
-        // properties; local builds fall back to these defaults.
+        // Release builds pass the version as Gradle properties; local builds
+        // fall back to these defaults.
         versionCode = (findProperty("appVersionCode") as String?)?.toInt() ?: 1
         versionName = findProperty("appVersionName") as String? ?: "0.1.0"
     }
@@ -23,11 +23,11 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "OpenDisplay Dev")
+            resValue("string", "app_name", "无线副屏开发版")
         }
         release {
             isMinifyEnabled = false
-            resValue("string", "app_name", "OpenDisplay")
+            resValue("string", "app_name", "无线副屏")
         }
     }
 

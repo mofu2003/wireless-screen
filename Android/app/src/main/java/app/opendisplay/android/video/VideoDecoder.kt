@@ -470,7 +470,7 @@ class VideoDecoder(private val callbacks: Callbacks) {
     }
 
     private companion object {
-        const val TAG = "OpenDisplay"
+        const val TAG = "WirelessScreen"
         const val MAX_BACKLOG = 6
         const val MAX_STARTUP_BACKLOG = 90
         const val INPUT_TIMEOUT_US = 20_000L

@@ -33,8 +33,8 @@ internal class AccessoryLink private constructor(
     override fun close() = fd.close()
 
     companion object {
-        const val MANUFACTURER = "OpenDisplay"
-        const val MODEL = "OpenDisplay Receiver"
+        const val MANUFACTURER = "WirelessScreen"
+        const val MODEL = "WirelessScreen Receiver"
 
         fun isOurs(accessory: UsbAccessory) =
             accessory.manufacturer == MANUFACTURER && accessory.model == MODEL

@@ -18,7 +18,7 @@ enum AppPresentation: String, CaseIterable {
 }
 
 @main
-struct OpenSidecarMacApp: App {
+struct WirelessScreenMacApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var controller = SenderController.shared
 
@@ -37,17 +37,12 @@ struct OpenSidecarMacApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    // Sparkle's standard updater. `startingUpdater: true` boots the updater
-    // immediately so scheduled background checks (SUEnableAutomaticChecks)
-    // run; the menu item drives manual "Check for Updates…". Held for the
-    // app's lifetime here so every window (menu bar + control window) shares
-    // one updater instance.
+    /// One Sparkle updater for the lifetime of the app. Starting it here also
+    /// enables the scheduled background checks configured in project.yml.
     let updater = SPUStandardUpdaterController(
         startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Hand the updater to the control window, which is built outside the
-        // SwiftUI App scene (NSHostingView), so it can offer the same button.
         MainWindow.updater = updater
         let presentation = SenderController.shared.presentation
         NSApp.setActivationPolicy(presentation == .dock ? .regular : .accessory)
@@ -73,8 +68,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @MainActor
 enum MainWindow {
     private static var window: NSWindow?
-    // Set once at launch by AppDelegate so the control window can share the
-    // app's single Sparkle updater.
     static var updater: SPUStandardUpdaterController?
 
     static func show() {
@@ -83,10 +76,11 @@ enum MainWindow {
                 contentRect: NSRect(x: 0, y: 0, width: 440, height: 540),
                 styleMask: [.titled, .closable, .miniaturizable],
                 backing: .buffered, defer: false)
-            w.title = "OpenDisplay"
+            w.title = ProductIdentity.name
             w.contentView = NSHostingView(
-                rootView: ContentView(controller: SenderController.shared,
-                                      updater: updater))
+                rootView: ContentView(
+                    controller: SenderController.shared,
+                    updater: updater))
             w.isReleasedWhenClosed = false
             w.center()
             window = w
@@ -369,7 +363,7 @@ final class SenderController: ObservableObject {
             Log.info("reverse requests: disabled")
             return
         }
-        reverseRequests.start(name: Host.current().localizedName ?? "OpenDisplay Mac")
+        reverseRequests.start(name: Host.current().localizedName ?? "\(ProductIdentity.name) Mac")
     }
 
     private func handleReverseConnectionRequest(
@@ -1152,8 +1146,6 @@ struct ContentView: View {
     @ObservedObject var controller: SenderController
     @ObservedObject private var displayReceiver = ReceiverController.shared
     @StateObject private var permissions = PermissionMonitor()
-    // Optional so the view still compiles/previews without an updater (e.g.
-    // if Sparkle ever fails to start); the button just disables itself then.
     let updater: SPUStandardUpdaterController?
 
     var body: some View {
@@ -1164,9 +1156,9 @@ struct ContentView: View {
                     .resizable()
                     .frame(width: 44, height: 44)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("OpenDisplay")
+                    Text(ProductIdentity.name)
                         .font(.title3.bold())
-                    Text("Your iPads, iPhones and Macs as extra displays")
+                    Text("把平板、手机和 Mac 变成 Mac 的扩展屏")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -1184,7 +1176,7 @@ struct ContentView: View {
             Form {
                 Section("Devices") {
                     if controller.deviceEntries.isEmpty {
-                        Text("No devices found — plug one in via USB, or open the OpenDisplay app on a device on this WiFi network.")
+                        Text("未发现设备。请通过 USB 连接，或在同一 WiFi 网络的设备上打开无线副屏。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -1279,7 +1271,7 @@ struct ContentView: View {
                     Toggle("Allow devices to request this Mac",
                            isOn: $controller.acceptConnectionRequests)
                     if controller.acceptConnectionRequests {
-                        Text("Devices that have connected before can ask this Mac to send its screen without using the Mac. Keep this Mac awake and OpenDisplay running.")
+                        Text("连接过的设备可以让此 Mac 主动发送画面，无需再操作 Mac。请保持 Mac 唤醒并让无线副屏运行。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Toggle("Allow unrecognized devices",
@@ -1297,7 +1289,7 @@ struct ContentView: View {
                         }
                     }
                     if controller.presentation == .background {
-                        Text("No menu bar or Dock icon — streaming keeps running. Open the OpenDisplay app again (Spotlight/Finder) to show this window.")
+                        Text("隐藏菜单栏和程序坞图标，串流继续运行。通过聚焦搜索或访达重新打开无线副屏即可显示此窗口。")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -1336,8 +1328,8 @@ struct ContentView: View {
                         granted: !controller.discovered.isEmpty,
                         uncertain: controller.discovered.isEmpty && !controller.localNetworkDenied,
                         help: controller.localNetworkDenied
-                            ? "Off for OpenDisplay on this Mac, so WiFi mode finds no devices. Allow OpenDisplay under Privacy & Security → Local Network."
-                            : "Required for WiFi mode. If no device appears in the Devices list, allow OpenDisplay under Privacy & Security → Local Network on this Mac AND on the device — and keep the OpenDisplay app open there.",
+                            ? "此 Mac 未允许无线副屏访问本地网络，因此 WiFi 模式发现不到设备。请在“隐私与安全性 → 本地网络”中允许访问。"
+                            : "WiFi 模式需要此权限。如果设备列表为空，请在 Mac 和接收设备的“隐私与安全性 → 本地网络”中允许无线副屏访问，并保持接收端应用打开。",
                         anchor: "Privacy_LocalNetwork"
                     )
                 }
@@ -1363,7 +1355,7 @@ struct ContentView: View {
                 // filesystem path to find it.
                 Button("Logs") { Log.revealInFinder() }
                     .controlSize(.small)
-                    .help("Reveal the OpenDisplay log files in Finder")
+                    .help("在访达中显示无线副屏日志文件")
                 if let updater {
                     CheckForUpdatesView(updater: updater)
                 }

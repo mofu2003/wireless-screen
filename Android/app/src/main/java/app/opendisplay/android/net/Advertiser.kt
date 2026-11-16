@@ -80,7 +80,7 @@ class Advertiser(context: Context) {
     }
 
     private companion object {
-        const val TAG = "OpenDisplay"
+        const val TAG = "WirelessScreen"
         const val MAX_RETRIES = 6
         const val RETRY_DELAY_MS = 5000L
     }

@@ -11,6 +11,7 @@ import android.os.Looper
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import app.opendisplay.android.Log
+import app.opendisplay.android.ProductInfo
 import app.opendisplay.android.R
 import java.io.File
 import java.io.FileOutputStream
@@ -153,7 +154,7 @@ class UpdateManager(
 
     private fun downloadFile(release: UpdateRelease): File {
         val dir = File(context.cacheDir, "updates").apply { mkdirs() }
-        val target = File(dir, "OpenDisplay-${release.versionCode}.apk")
+        val target = File(dir, "WirelessScreen-${release.versionCode}.apk")
         if (target.isFile && fileSha256(target) == release.sha256) {
             Log.i(TAG, "using verified cached APK ${target.name}")
             return target
@@ -220,7 +221,7 @@ class UpdateManager(
             connection.setRequestProperty("Accept", accept)
             connection.setRequestProperty("Cache-Control", "no-cache")
             connection.setRequestProperty("Pragma", "no-cache")
-            connection.setRequestProperty("User-Agent", "OpenDisplay-Android")
+            connection.setRequestProperty("User-Agent", ProductInfo.USER_AGENT)
             val code = connection.responseCode
             if (code in 300..399) {
                 val location = connection.getHeaderField("Location")
