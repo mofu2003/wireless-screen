@@ -1,7 +1,7 @@
 {
-  "versionCode": 10100,
-  "versionName": "0.1.1",
-  "apkUrl": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.1/WirelessScreen-Android.apk",
-  "sha256": "b8f545865799b25c40e7f0224ceba70d369d4c4be21e1d7c2b373e31eb74062c",
-  "notes": "### 自动更新\n\n- Android 与 macOS 的更新源改用稳定的 `refs/heads/main` 地址，避免短路径\n  在仓库公开后继续返回陈旧 404。\n- 公开无线副屏源码和更新源，使 Sparkle appcast、Android 清单和 Release\n  资产可被匿名访问。\n\n### 验证\n\n- 从没有 GitHub 登录凭据的网络请求验证 Android 清单、两份 appcast 和 APK\n  下载地址。\n- macOS 与 Android 构建和自动化测试。"
+  "versionCode": 10200,
+  "versionName": "0.1.2",
+  "apkUrl": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.2/WirelessScreen-Android.apk",
+  "sha256": "d0d23069ed6f24a7d6aaa8858ae8c533ad0eee0af0da0a1f53fe31b8a8f0fb2c",
+  "notes": "### Linux\n\n- 新增 Linux 接收端发布包：aarch64 与 x86_64 均提供 GTK 完整包和\n  Ubuntu 22.04 / Debian 12 兼容包。完整包支持全屏输入回传；兼容包使用\n  `waylandsink`，保证旧版 RK3576 镜像可以显示画面和硬解。\n- 自动识别 RK3576/Rockchip 板型，优先使用厂商 MPP `mppvideodec` 或主线\n  `v4l2slh264dec`；硬解协商失败时仍会降级到软件解码。\n- 增加 `--decoder rockchip|mppvideodec|v4l2slh264dec|software` 便于板端排查。\n- Linux 应用身份统一为“无线副屏接收端”，新增桌面图标、应用菜单入口和\n  systemd 用户服务。\n- 发布工作流增加 Linux aarch64/x86_64 构建和安装包资产。\n\n### 文档\n\n- 新增 RK3576 双包选择、安装、60 Hz、硬解和黑屏排错说明。\n\n### 验证\n\n- Ubuntu 24.04 ARM64 完整包与 Ubuntu 22.04 ARM64 兼容包编译、依赖检查、\n  归档完整性和协议冒烟测试。\n- 未连接 RK3576 实机，板端 HDMI/eDP 输出、厂商 MPP 插件、全屏和触控回传\n  仍需实机复测。"
 }

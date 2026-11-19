@@ -3,13 +3,13 @@
     <channel>
         <title>WirelessScreenReceiver</title>
         <item>
-            <title>0.1.1</title>
-            <pubDate>Mon, 16 Nov 2026 05:42:12 +0000</pubDate>
-            <link>https://github.com/mofu2003/wireless-screen/releases/tag/v0.1.1</link>
-            <sparkle:version>104</sparkle:version>
-            <sparkle:shortVersionString>0.1.1</sparkle:shortVersionString>
+            <title>0.1.2</title>
+            <pubDate>Thu, 19 Nov 2026 10:47:46 +0000</pubDate>
+            <link>https://github.com/mofu2003/wireless-screen/releases/tag/v0.1.2</link>
+            <sparkle:version>105</sparkle:version>
+            <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/mofu2003/wireless-screen/releases/download/v0.1.1/WirelessScreenReceiver-0.1.1.zip" length="3609712" type="application/octet-stream" sparkle:edSignature="F7DL0DEO2TIqyPrrwmllCcaVa7dQS1psGaelvDt4YP+KSn7lGfnq8+rCREpLHsbgR/sY/gutm0of7726MbQYBw=="/>
+            <enclosure url="https://github.com/mofu2003/wireless-screen/releases/download/v0.1.2/WirelessScreenReceiver-0.1.2.zip" length="3609711" type="application/octet-stream" sparkle:edSignature="TGct0yfV4ZxYQ7FkRbkP04vh9cga4UyhEkdeeWy7c+jyGH/nA4DoniHQQQ0DQDfGYC49uVT1hiPQePRBkEO2Bw=="/>
         </item>
     </channel>
 </rss>
