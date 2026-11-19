@@ -1,9 +1,11 @@
 //! Decode + present. The protocol side hands us one access unit at a time
 //! (§5: display in arrival order, latest wins); everything after that is a
 //! GStreamer pipeline, chosen so the same binary picks hardware decode where
-//! the machine has it (`vah264dec`, `v4l2slh264dec`) and software where not
-//! (`avdec_h264`), and presents through `waylandsink` zero-copy when it can.
+//! the machine has it (`vah264dec`, `mppvideodec`, `v4l2slh264dec`) and
+//! software where not (`avdec_h264`), and presents through `waylandsink`
+//! zero-copy when it can.
 
+use crate::platform;
 use anyhow::Result;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -129,7 +131,7 @@ pub fn open(cfg: &VideoConfig) -> Result<Box<dyn VideoOutput>> {
     match cfg.sink {
         SinkKind::None => Ok(Box::new(NullOutput::default())),
         #[cfg(feature = "gstreamer")]
-        _ => Ok(Box::new(gst_out::GstOutput::new(cfg)?)),
+        _ => Ok(Box::new(gst_out::GstOutput::new(cfg.clone())?)),
         #[cfg(not(feature = "gstreamer"))]
         _ => anyhow::bail!("built without the `gstreamer` feature; only --sink none is available"),
     }
@@ -229,8 +231,9 @@ pub mod gst_out {
     }
 
     impl GstOutput {
-        pub fn new(cfg: &VideoConfig) -> Result<Self> {
+        pub fn new(mut cfg: VideoConfig) -> Result<Self> {
             gst::init().context("initialising GStreamer")?;
+            cfg.decoder = resolve_decoder(&cfg.decoder);
             #[cfg(feature = "gtk")]
             if cfg.sink == SinkKind::Gtk {
                 gstgtk4::plugin_register_static().context("registering gtk4paintablesink")?;
@@ -247,10 +250,11 @@ pub mod gst_out {
             }
             if cfg.decoder == "decodebin3" {
                 prefer_software_on_apple_avd();
+                prefer_rockchip_h264();
             }
             if cfg.decoder == "decodebin3" && !has_h264_decoder() {
                 return Err(anyhow!(
-                    "no H.264 decoder element installed; install gst-libav (avdec_h264) or gst-plugin-va (vah264dec)"
+                    "no H.264 decoder element installed; install gst-libav (avdec_h264), gst-plugin-va (vah264dec), gstreamer-rockchip (mppvideodec), or the mainline V4L2 decoder (v4l2slh264dec)"
                 ));
             }
             if cfg.sink == SinkKind::Wayland {
@@ -260,9 +264,10 @@ pub mod gst_out {
             }
             let rendered = Arc::new(AtomicU64::new(0));
             let decode_ms = Arc::new(std::sync::Mutex::new(Vec::new()));
-            let (desc, pipeline, appsrc, paintable_sink) = Self::build(cfg, &rendered, &decode_ms)?;
+            let (desc, pipeline, appsrc, paintable_sink) =
+                Self::build(&cfg, &rendered, &decode_ms)?;
             Ok(Self {
-                cfg: cfg.clone(),
+                cfg,
                 desc,
                 pipeline,
                 appsrc,
@@ -530,21 +535,70 @@ pub mod gst_out {
     }
 
     /// H.264 decoders that work wherever they are installed. V4L2 stateless
-    /// (`v4l2sl*`) ones are left out: they register for any request-API
-    /// device and may show nothing (review T1), so on their own they do not
-    /// make a working receiver; decodebin3 still tries them first.
+    /// (`v4l2sl*`) ones are only trusted on Rockchip, where the mainline
+    /// `rkvdec` driver exposes a real decoder; elsewhere they can register
+    /// for any request-API device and show nothing (review T1).
     const TRUSTED_H264: &[&str] = &[
         "avdec_h264",
         "openh264dec",
         "vah264dec",
         "nvh264dec",
         "v4l2h264dec",
+        "mppvideodec",
     ];
 
     fn has_h264_decoder() -> bool {
-        TRUSTED_H264
+        if TRUSTED_H264
             .iter()
             .any(|n| gst::ElementFactory::find(n).is_some_and(|f| f.rank() > gst::Rank::NONE))
+        {
+            return true;
+        }
+        platform::get().is_rockchip()
+            && gst::ElementFactory::find("v4l2slh264dec")
+                .is_some_and(|f| f.rank() > gst::Rank::NONE)
+    }
+
+    /// Resolve friendly decoder names before the pipeline is built.
+    fn resolve_decoder(requested: &str) -> String {
+        match requested {
+            "auto" => "decodebin3".into(),
+            "software" => "avdec_h264".into(),
+            "rockchip" => {
+                for name in ["mppvideodec", "v4l2slh264dec"] {
+                    if gst::ElementFactory::find(name).is_some_and(|f| f.rank() > gst::Rank::NONE) {
+                        info!("Rockchip decoder selected: {name}");
+                        return name.into();
+                    }
+                }
+                warn!(
+                    "no Rockchip H.264 decoder found (mppvideodec/v4l2slh264dec); using decodebin3"
+                );
+                "decodebin3".into()
+            }
+            other => other.into(),
+        }
+    }
+
+    /// On RK3576/RK3588 BSPs the vendor MPP decoder or the mainline rkvdec
+    /// stateless decoder is the intended path. Raise it above software so
+    /// decodebin3 actually picks hardware when both are installed.
+    fn prefer_rockchip_h264() {
+        if !platform::get().is_rockchip() {
+            return;
+        }
+        if let Some(factory) = gst::ElementFactory::find("mppvideodec") {
+            if factory.rank() > gst::Rank::NONE && factory.rank() < gst::Rank::PRIMARY + 1 {
+                factory.set_rank(gst::Rank::PRIMARY + 1);
+                info!("Rockchip MPP H.264 decoder preferred: mppvideodec");
+            }
+        }
+        if let Some(factory) = gst::ElementFactory::find("v4l2slh264dec") {
+            if factory.rank() > gst::Rank::NONE && factory.rank() < gst::Rank::PRIMARY {
+                factory.set_rank(gst::Rank::PRIMARY);
+                info!("Rockchip V4L2 H.264 decoder preferred: v4l2slh264dec");
+            }
+        }
     }
 
     /// Apple silicon's AVD decoder (Asahi `avd` driver) works through

@@ -1,5 +1,6 @@
 //! Stable per-install identity (§2.1, §6.1): the same UUID in the Bonjour TXT
-//! record and in `hello.id`, persisted under `$XDG_STATE_HOME/opendisplay/id`.
+//! record and in `hello.id`, persisted under
+//! `$XDG_STATE_HOME/wireless-screen/id`.
 
 use std::path::PathBuf;
 
@@ -7,12 +8,12 @@ use anyhow::{Context, Result};
 
 fn state_dir() -> PathBuf {
     if let Some(p) = std::env::var_os("XDG_STATE_HOME") {
-        return PathBuf::from(p).join("opendisplay");
+        return PathBuf::from(p).join("wireless-screen");
     }
     let home = std::env::var_os("HOME")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("/tmp"));
-    home.join(".local/state/opendisplay")
+    home.join(".local/state/wireless-screen")
 }
 
 /// Load the install id, creating and persisting one on first run.

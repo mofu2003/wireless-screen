@@ -36,7 +36,7 @@ pub fn watch_logind(tx: tokio::sync::mpsc::UnboundedSender<PowerEvent>) {
                 "Inhibit",
                 &(
                     "sleep",
-                    "OpenDisplay Receiver",
+                    "WirelessScreen Receiver",
                     "Tell the sender the display is going to sleep",
                     "delay",
                 ),

@@ -1,6 +1,6 @@
 [package]
 name = "od-receiver"
-description = "OpenDisplay receiver for Linux: turns a Wayland output into an OpenDisplay display (PROTOCOL.md pv 3)."
+description = "WirelessScreen receiver for Linux: turns a Wayland output into a Mac wireless display (PROTOCOL.md pv 3)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -8,12 +8,17 @@ repository.workspace = true
 rust-version.workspace = true
 
 [features]
-default = ["gstreamer", "gtk", "logind"]
+default = ["gstreamer", "gtk", "logind", "dmabuf"]
 # Decode and present through GStreamer. Without it only `--sink none` works,
 # which is enough for protocol testing on a machine without the dev packages.
 gstreamer = ["dep:gstreamer", "dep:gstreamer-app"]
 # The GTK 4 window presenter (fullscreen, input, cursor overlay).
 gtk = ["gstreamer", "dep:gtk4", "dep:gst-plugin-gtk4"]
+# GTK 4.14 APIs and the fractional monitor scale.
+gtk-v4-14 = ["gtk4/v4_14"]
+# Zero-copy DMABuf import into GTK 4.14+. Linux release builds targeting
+# older RK3576 images leave this off and let GTK convert on the CPU.
+dmabuf = ["gtk", "gtk-v4-14", "gst-plugin-gtk4/dmabuf"]
 # Tell the sender `sleeping` before a suspend (logind PrepareForSleep).
 logind = ["dep:zbus"]
 

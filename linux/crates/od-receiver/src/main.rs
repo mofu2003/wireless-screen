@@ -9,9 +9,13 @@ use opendisplay_proto::control::{Hello, Panel, VideoCap};
 use tokio::sync::watch;
 use tracing::{info, warn};
 
-/// OpenDisplay receiver for Linux.
+/// WirelessScreen receiver for Linux.
 #[derive(Parser, Debug)]
-#[command(version = env!("OD_RECEIVER_VERSION"), about)]
+#[command(
+    name = "wireless-screen-receiver",
+    version = env!("OD_RECEIVER_VERSION"),
+    about = "Use this screen as a wireless display for a WirelessScreen sender"
+)]
 struct Args {
     /// TCP listen address (§1: the receiver listens).
     #[arg(long, default_value = "0.0.0.0:9000")]
@@ -19,9 +23,10 @@ struct Args {
     /// Bonjour instance name (display-only). Default: hostname.
     #[arg(long)]
     name: Option<String>,
-    /// `hello.device` (free-form).
-    #[arg(long, default_value = "Linux")]
-    device: String,
+    /// `hello.device` (free-form). Default: RK3576/Rockchip/Linux from the
+    /// device tree.
+    #[arg(long)]
+    device: Option<String>,
     /// Output (connector name) to describe in `hello` and to fullscreen on.
     /// Default: first.
     #[arg(long)]
@@ -43,7 +48,9 @@ struct Args {
     /// GStreamer <= 1.28.7.
     #[arg(long, default_value_t = default_sink())]
     sink: SinkKind,
-    /// GStreamer decoder element (decodebin3 autoplugs by rank).
+    /// GStreamer decoder element. `auto`/`decodebin3` autoplugs by rank;
+    /// `rockchip` selects `mppvideodec` or `v4l2slh264dec` when available;
+    /// `software` selects `avdec_h264`.
     #[arg(long, default_value = "decodebin3")]
     decoder: String,
     /// Present in a normal window instead of fullscreen.
@@ -106,7 +113,11 @@ fn hello(a: &Args, guess: PanelGuess, install_id: &str) -> Result<Hello> {
         // Deprecated field (§7): senders without `panel` read it as a UI
         // factor, so keep it whole.
         scale: scale.ceil().max(1.0),
-        device: Some(a.device.clone()),
+        device: Some(
+            a.device
+                .clone()
+                .unwrap_or_else(|| od_receiver::platform::get().device_name()),
+        ),
         id: Some(install_id.to_string()),
         display_max_frame_rate: refresh,
         // §6.7: facts only; the sender decides the desktop size.
@@ -197,7 +208,7 @@ async fn serve(
         .map(|s| s.trim().to_string())
         .unwrap_or_default();
     let host = if host.is_empty() {
-        "opendisplay".to_string()
+        "wireless-screen".to_string()
     } else {
         host
     };
@@ -244,6 +255,7 @@ fn main() -> Result<()> {
         .with_target(false)
         .init();
     let a = Args::parse();
+    info!("platform: {}", od_receiver::platform::get().summary());
     #[cfg(feature = "gtk")]
     if a.sink == SinkKind::Gtk {
         return gtk_main(a);
@@ -322,7 +334,7 @@ fn gtk_main(a: Args) -> Result<()> {
     let hello = hello(&a, guess, &install_id)?;
 
     let gl = !a.no_gl && gtk_ui::gl_available();
-    let pipeline = od_receiver::video::gst_out::GstOutput::new(&VideoConfig {
+    let pipeline = od_receiver::video::gst_out::GstOutput::new(VideoConfig {
         sink: SinkKind::Gtk,
         decoder: a.decoder.clone(),
         fullscreen: !a.windowed,

@@ -1,0 +1,15 @@
+# Starts the receiver fullscreen on the first monitor after login.
+#   systemctl --user enable --now wireless-screen-receiver
+# Override arguments with `systemctl --user edit wireless-screen-receiver`.
+[Unit]
+Description=WirelessScreen receiver
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/wireless-screen-receiver
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

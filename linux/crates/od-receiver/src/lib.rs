@@ -1,4 +1,4 @@
-//! The Linux OpenDisplay receiver: a `ReceiverSession` wired to a TCP listener
+//! The Linux WirelessScreen receiver: a `ReceiverSession` wired to a TCP listener
 //! (one sender at a time; a newcomer proves itself with bytes before it
 //! replaces a live one, §1), an optional UDP cursor port
 //! (§6.3), a Bonjour advertisement (§2.1), and a decode/present pipeline.
@@ -9,6 +9,7 @@ pub mod gtk_ui;
 pub mod id;
 pub mod input;
 pub mod outputs;
+pub mod platform;
 pub mod power;
 pub mod stats;
 pub mod video;

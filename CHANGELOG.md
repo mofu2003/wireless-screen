@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.1.2] - 2026-11-19
+
+### Linux
+
+- 新增 Linux 接收端发布包：aarch64 与 x86_64 均提供 GTK 完整包和
+  Ubuntu 22.04 / Debian 12 兼容包。完整包支持全屏输入回传；兼容包使用
+  `waylandsink`，保证旧版 RK3576 镜像可以显示画面和硬解。
+- 自动识别 RK3576/Rockchip 板型，优先使用厂商 MPP `mppvideodec` 或主线
+  `v4l2slh264dec`；硬解协商失败时仍会降级到软件解码。
+- 增加 `--decoder rockchip|mppvideodec|v4l2slh264dec|software` 便于板端排查。
+- Linux 应用身份统一为“无线副屏接收端”，新增桌面图标、应用菜单入口和
+  systemd 用户服务。
+- 发布工作流增加 Linux aarch64/x86_64 构建和安装包资产。
+
+### 文档
+
+- 新增 RK3576 双包选择、安装、60 Hz、硬解和黑屏排错说明。
+
+### 验证
+
+- Ubuntu 24.04 ARM64 完整包与 Ubuntu 22.04 ARM64 兼容包编译、依赖检查、
+  归档完整性和协议冒烟测试。
+- 未连接 RK3576 实机，板端 HDMI/eDP 输出、厂商 MPP 插件、全屏和触控回传
+  仍需实机复测。
+
 ## [0.1.1] - 2026-11-16
 
 ### 自动更新
@@ -39,8 +64,6 @@
 - Android：单元测试、Lint 和 Debug APK 构建通过。
 - Android Release APK 通过 v1/v2/v3 签名校验。
 - 本轮未连接 Android 平板进行触控和输入法真机复测。
-
-## Unreleased
 
 ## [1.30.3](https://github.com/peetzweg/opendisplay/compare/v1.30.2...v1.30.3) (2026-11-14)
 

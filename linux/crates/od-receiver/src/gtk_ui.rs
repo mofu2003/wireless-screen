@@ -21,9 +21,9 @@ use crate::input::{ScrollUnit, UserInput, VideoRect, scroll_to_video};
 use crate::video::VideoOutput;
 use crate::video::gst_out::GstOutput;
 
-/// The reverse-DNS id: the Wayland app_id, the Flatpak id and the desktop
-/// entry's name (`app.opendisplay.Receiver.desktop`) all match it.
-pub const APP_ID: &str = "app.opendisplay.Receiver";
+/// The reverse-DNS id: the Wayland app_id and the desktop entry's name
+/// (`wireless-screen-receiver.desktop`) match it.
+pub const APP_ID: &str = "io.github.mofu2003.wirelessscreen.receiver";
 
 /// One monitor as GDK reports it.
 #[derive(Debug, Clone, PartialEq)]
@@ -54,11 +54,37 @@ impl MonitorFacts {
     }
 }
 
+fn monitor_description(m: &gdk::Monitor) -> String {
+    #[cfg(feature = "gtk-v4-14")]
+    {
+        if let Some(description) = m.description() {
+            return description.to_string();
+        }
+    }
+    [m.manufacturer(), m.model()]
+        .into_iter()
+        .flatten()
+        .map(|s| s.to_string())
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn monitor_scale(m: &gdk::Monitor) -> f64 {
+    #[cfg(feature = "gtk-v4-14")]
+    {
+        m.scale()
+    }
+    #[cfg(not(feature = "gtk-v4-14"))]
+    {
+        f64::from(m.scale_factor().max(1))
+    }
+}
+
 /// Initialise GTK on this (main) thread.
 pub fn init() -> Result<()> {
     // GTK names the toplevel after the program unless told otherwise.
     glib::set_prgname(Some(APP_ID));
-    glib::set_application_name("OpenDisplay Receiver");
+    glib::set_application_name("无线副屏接收端");
     gtk::init().map_err(|e| anyhow!("initialising GTK: {e}"))
 }
 
@@ -79,9 +105,9 @@ pub fn monitors() -> Vec<MonitorFacts> {
             let g = m.geometry();
             MonitorFacts {
                 connector: m.connector().map(|s| s.to_string()).unwrap_or_default(),
-                description: m.description().map(|s| s.to_string()).unwrap_or_default(),
+                description: monitor_description(m),
                 logical: (g.width(), g.height()),
-                scale: m.scale(),
+                scale: monitor_scale(m),
                 refresh_mhz: m.refresh_rate(),
             }
         })
@@ -370,7 +396,7 @@ pub fn run(
 
         let window = gtk::ApplicationWindow::builder()
             .application(app)
-            .title("OpenDisplay")
+            .title("无线副屏")
             .child(&overlay)
             .default_width(1280)
             .default_height(800)
@@ -404,7 +430,7 @@ pub fn run(
         let _cookie = app.inhibit(
             Some(&window),
             gtk::ApplicationInhibitFlags::IDLE,
-            Some("Showing an OpenDisplay stream"),
+            Some("Showing a WirelessScreen stream"),
         );
         picture.add_tick_callback(|_, _| {
             UI.with(|ui| {

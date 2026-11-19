@@ -380,6 +380,10 @@ useful.
 
 ## Linux receiver (beta)
 
+The Cargo target is still named `od-receiver`; release packages install the
+same binary as `wireless-screen-receiver`. For RK3576 packages and board-side
+troubleshooting, see [`README-RK3576.md`](README-RK3576.md).
+
 `od-receiver` turns a Linux machine's screen into an OpenDisplay display:
 a Mac or a Linux desktop extends onto it like onto an iPad. It is a GTK 4
 window that fills the screen once a sender connects, draws the sender's

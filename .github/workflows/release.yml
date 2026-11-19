@@ -210,8 +210,83 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  linux:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            variant: full
+            container: ubuntu:24.04
+          - arch: x86_64
+            runner: ubuntu-24.04
+            variant: full
+            container: ubuntu:24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+            variant: compat
+            container: ubuntu:22.04
+          - arch: x86_64
+            runner: ubuntu-24.04
+            variant: compat
+            container: ubuntu:22.04
+    name: linux (${{ matrix.arch }}, ${{ matrix.variant }})
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      # Full: GTK 4.14 window + input on Ubuntu 24.04. Compat: Ubuntu 22.04
+      # ABI with waylandsink, for older RK3576 board images without GTK 4.14.
+      - name: Build receiver in ${{ matrix.container }}
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          ARCH: ${{ matrix.arch }}
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e VERSION -e ARCH -e VARIANT -e OD_GIT_COMMIT="$GITHUB_SHA" \
+            -v "$PWD:/src" -w /src/linux \
+            "${{ matrix.container }}" bash -lc '
+              set -euo pipefail
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update -qq
+              packages=(
+                ca-certificates curl build-essential pkg-config clang
+                libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+                libwayland-dev
+              )
+              if [[ "$VARIANT" == full ]]; then
+                packages+=(libgtk-4-dev)
+              fi
+              apt-get install -y -qq --no-install-recommends "${packages[@]}"
+              curl -sSf https://sh.rustup.rs |
+                sh -s -- -y --profile minimal --default-toolchain stable
+              . "$HOME/.cargo/env"
+              build=(--locked --release -p od-receiver)
+              if [[ "$VARIANT" == compat ]]; then
+                build+=(--no-default-features --features gstreamer,logind)
+              fi
+              OD_RECEIVER_VERSION="$VERSION" cargo build "${build[@]}"
+              ./packaging/linux/build-receiver-tarball.sh \
+                "$VERSION" "$ARCH" "$VARIANT"
+            '
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.arch }}-${{ matrix.variant }}
+          path: |
+            dist/WirelessScreenReceiver-*-linux-*.tar.gz
+            dist/WirelessScreenReceiver-*-linux-*.tar.gz.sha256
+          if-no-files-found: error
+
   publish:
-    needs: [prepare, macos, android]
+    needs: [prepare, macos, android, linux]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -280,6 +355,8 @@ jobs:
             "dist/WirelessScreen-Android.apk.sha256" \
             "dist/WirelessScreen-$VERSION.zip" \
             "dist/WirelessScreenReceiver-$VERSION.zip" \
+            dist/WirelessScreenReceiver-*-linux-*.tar.gz \
+            dist/WirelessScreenReceiver-*-linux-*.tar.gz.sha256 \
             "release-notes.md" \
             --title "无线副屏 $VERSION" \
             --notes-file release-notes.md \
