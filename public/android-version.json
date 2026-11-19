@@ -1,7 +1,7 @@
 {
-  "versionCode": 10200,
-  "versionName": "0.1.2",
-  "apkUrl": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.2/WirelessScreen-Android.apk",
-  "sha256": "d0d23069ed6f24a7d6aaa8858ae8c533ad0eee0af0da0a1f53fe31b8a8f0fb2c",
-  "notes": "### Linux\n\n- 新增 Linux 接收端发布包：aarch64 与 x86_64 均提供 GTK 完整包和\n  Ubuntu 22.04 / Debian 12 兼容包。完整包支持全屏输入回传；兼容包使用\n  `waylandsink`，保证旧版 RK3576 镜像可以显示画面和硬解。\n- 自动识别 RK3576/Rockchip 板型，优先使用厂商 MPP `mppvideodec` 或主线\n  `v4l2slh264dec`；硬解协商失败时仍会降级到软件解码。\n- 增加 `--decoder rockchip|mppvideodec|v4l2slh264dec|software` 便于板端排查。\n- Linux 应用身份统一为“无线副屏接收端”，新增桌面图标、应用菜单入口和\n  systemd 用户服务。\n- 发布工作流增加 Linux aarch64/x86_64 构建和安装包资产。\n\n### 文档\n\n- 新增 RK3576 双包选择、安装、60 Hz、硬解和黑屏排错说明。\n\n### 验证\n\n- Ubuntu 24.04 ARM64 完整包与 Ubuntu 22.04 ARM64 兼容包编译、依赖检查、\n  归档完整性和协议冒烟测试。\n- 未连接 RK3576 实机，板端 HDMI/eDP 输出、厂商 MPP 插件、全屏和触控回传\n  仍需实机复测。"
+  "versionCode": 10300,
+  "versionName": "0.1.3",
+  "apkUrl": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.3/WirelessScreen-Android.apk",
+  "sha256": "2e130efaece4f79d181af1097e0afe193bd7180edee77da01bb66a302297dc15",
+  "notes": "### Linux\n\n- 新增 Linux 发送端发布包：aarch64 与 x86_64 均提供可直接安装的\n  `WirelessScreenSender` 压缩包。\n- Linux 发送端支持 Hyprland、Sway、KDE Plasma 和 GNOME 创建扩展屏；\n  其他具备所需协议的 Wayland 合成器可用 `--output` 镜像现有输出。\n- 复用现有 OpenDisplay v3 协议、mDNS 发现、TCP 9000 视频流和 UDP 9001\n  光标通道，可连接 macOS 或 Android 接收端。\n- 产品命令统一为 `wireless-screen-sender`，配置迁移到\n  `~/.config/wireless-screen/sender.toml`，发布包包含桌面入口、\n  systemd 用户服务和安装脚本。\n- 发布包静态链接 FFmpeg 与 x264，目标系统只需提供 glibc、C/C++ 运行库\n  和 PipeWire 运行库。\n\n### 验证\n\n- Linux sender 154 项单元测试、Clippy 和格式检查通过。\n- 在 Debian testing arm64 容器内的 Sway 1.12 上，将动态桌面通过\n  `ext-image-copy-capture` 投到 macOS 接收端：稳定 29–30 fps，\n  接收端回传端到端延迟约 35 ms，并确认 Mac 全屏显示时钟画面。\n- 动态链接依赖检查、安装脚本、桌面入口和 systemd 用户服务安装/卸载通过。\n- 未连接 RK3576 实机；实体 Android 平板接收端未在本轮复测，使用同一\n  协议但需要按实际设备验证。"
 }
