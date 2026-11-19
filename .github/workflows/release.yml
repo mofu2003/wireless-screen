@@ -285,8 +285,88 @@ jobs:
             dist/WirelessScreenReceiver-*-linux-*.tar.gz.sha256
           if-no-files-found: error
 
+  linux-sender:
+    needs: prepare
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+          - arch: x86_64
+            runner: ubuntu-24.04
+    name: linux sender (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.tag }}
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential pkg-config clang libclang-dev \
+            libpipewire-0.3-dev libwayland-dev nasm git curl
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: linux
+
+      - name: Cache static FFmpeg and x264
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/ffmpeg-static
+          key: ffmpeg-static-${{ runner.arch }}-${{ hashFiles('linux/packaging/ffmpeg/build-static.sh') }}
+
+      - name: Build static FFmpeg and x264
+        run: |
+          set -euo pipefail
+          prefix="$RUNNER_TEMP/ffmpeg-static"
+          if [[ ! -f "$prefix/rustflags" ]]; then
+            linux/packaging/ffmpeg/build-static.sh "$prefix"
+          fi
+
+      - name: Build WirelessScreen Sender
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          set -euo pipefail
+          prefix="$RUNNER_TEMP/ffmpeg-static"
+          export FFMPEG_DIR="$prefix"
+          export RUSTFLAGS="$(cat "$prefix/rustflags")"
+          export OD_SENDER_VERSION="$VERSION"
+          cd linux
+          cargo build --locked --release -p od-sender
+          mkdir -p ../dist
+          python3 packaging/third-party-licenses.py \
+            . "$prefix" > ../dist/THIRD-PARTY-LICENSES.txt
+
+      - name: Package Linux sender
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          cd linux
+          OD_SENDER_LICENSES="$GITHUB_WORKSPACE/dist/THIRD-PARTY-LICENSES.txt" \
+            OD_GIT_COMMIT="$GITHUB_SHA" \
+            ./packaging/linux/build-sender-tarball.sh "$VERSION" "$ARCH"
+
+      - name: Upload Linux sender artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-sender-${{ matrix.arch }}
+          path: |
+            dist/WirelessScreenSender-*-linux-*.tar.gz
+            dist/WirelessScreenSender-*-linux-*.tar.gz.sha256
+          if-no-files-found: error
+
   publish:
-    needs: [prepare, macos, android, linux]
+    needs: [prepare, macos, android, linux, linux-sender]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -357,6 +437,8 @@ jobs:
             "dist/WirelessScreenReceiver-$VERSION.zip" \
             dist/WirelessScreenReceiver-*-linux-*.tar.gz \
             dist/WirelessScreenReceiver-*-linux-*.tar.gz.sha256 \
+            dist/WirelessScreenSender-*-linux-*.tar.gz \
+            dist/WirelessScreenSender-*-linux-*.tar.gz.sha256 \
             "release-notes.md" \
             --title "无线副屏 $VERSION" \
             --notes-file release-notes.md \

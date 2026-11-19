@@ -55,13 +55,13 @@ impl HyprlandBackend {
         let v = ipc.version_info()?;
         match v.triple() {
             Some((maj, min, _)) if (maj, min) < MIN_VERSION => bail!(
-                "Hyprland {} is too old: od-sender needs {}.{} or newer (Lua IPC)",
+                "Hyprland {} is too old: wireless-screen-sender needs {}.{} or newer (Lua IPC)",
                 v.version,
                 MIN_VERSION.0,
                 MIN_VERSION.1
             ),
             Some((maj, min, _)) if (maj, min) > TESTED_UP_TO => warn!(
-                "Hyprland {} is newer than the tested {}.{}.x; report problems with `od-sender doctor` output",
+                "Hyprland {} is newer than the tested {}.{}.x; report problems with `wireless-screen-sender doctor` output",
                 v.version, TESTED_UP_TO.0, TESTED_UP_TO.1
             ),
             Some(_) => {}
@@ -176,7 +176,10 @@ impl Backend for HyprlandBackend {
             }
             // Held while removing, so no sender can start on it meanwhile.
             let Some(_lock) = try_lock(&m.name)? else {
-                warn!("{} is in use by a running od-sender; leaving it", m.name);
+                warn!(
+                    "{} is in use by a running wireless-screen-sender; leaving it",
+                    m.name
+                );
                 continue;
             };
             ipc.remove_output(&m.name)?;

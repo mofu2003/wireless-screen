@@ -15,9 +15,9 @@ use crate::wayland::registry::Snapshot;
 
 /// The README's support table, for refusals.
 pub const README_SETUPS: &str =
-    "https://github.com/peetzweg/opendisplay/blob/main/linux/README.md#supported-setups";
+    "https://github.com/mofu2003/wireless-screen/blob/main/linux/README-SENDER.md#支持范围";
 
-pub const ISSUE: &str = "https://github.com/peetzweg/opendisplay/issues/299";
+pub const ISSUE: &str = "https://github.com/mofu2003/wireless-screen/issues";
 
 /// The process environment detection reads.
 #[derive(Debug, Clone, Default)]
@@ -108,14 +108,14 @@ fn kde_decision(s: &Snapshot) -> Decision {
             if cfg!(feature = "kde") {
                 Decision::Kde
             } else {
-                Decision::Unsupported("this od-sender was built without KDE support (cargo feature `kde`)".into())
+                Decision::Unsupported("this wireless-screen-sender was built without KDE support (cargo feature `kde`)".into())
             }
         }
         (Some(sc), Some(fi)) => Decision::Unsupported(format!(
-            "KWin is too old: zkde_screencast v{sc} / fake input v{fi}, od-sender needs v2 / v3 (Plasma 5.24+)"
+            "KWin is too old: zkde_screencast v{sc} / fake input v{fi}, wireless-screen-sender needs v2 / v3 (Plasma 5.24+)"
         )),
         _ => Decision::Unsupported(
-            "KWin does not offer zkde_screencast_unstable_v1 and org_kde_kwin_fake_input to od-sender. Plasma < 6.8 offers them only to programs listed in a .desktop file's X-KDE-Wayland-Interfaces: install od-sender's package (it ships one for /usr/bin/od-sender) or see `od-sender doctor`; inside Flatpak/Snap they are never offered".into(),
+            "KWin does not offer zkde_screencast_unstable_v1 and org_kde_kwin_fake_input to wireless-screen-sender. Plasma < 6.8 offers them only to programs listed in a .desktop file's X-KDE-Wayland-Interfaces: install the wireless-screen-sender package or see `wireless-screen-sender doctor`; inside Flatpak/Snap they are never offered".into(),
         ),
     }
 }
@@ -272,7 +272,7 @@ pub fn decide(
     let hyprland_hint = |m: String| {
         if looks_like_hyprland {
             format!(
-                "{m}. XDG_CURRENT_DESKTOP says Hyprland but its IPC socket was not found: run od-sender from a terminal inside Hyprland, or pick an instance with --instance (see `od-sender doctor`)"
+                "{m}. XDG_CURRENT_DESKTOP says Hyprland but its IPC socket was not found: run wireless-screen-sender from a terminal inside Hyprland, or pick an instance with --instance (see `wireless-screen-sender doctor`)"
             )
         } else {
             m
@@ -293,7 +293,7 @@ pub fn decide(
                 return done(
                     steps,
                     Decision::Unsupported(hyprland_hint(
-                        "your compositor can capture and inject input, but od-sender cannot create a display on it; pass --output <name> to use an existing output".into(),
+                        "your compositor can capture and inject input, but wireless-screen-sender cannot create a display on it; pass --output <name> to use an existing output".into(),
                     )),
                 );
             }
@@ -331,7 +331,7 @@ pub fn decide(
         return done(
             steps,
             Decision::Unsupported(
-                "od-sender needs a Wayland session (XDG_SESSION_TYPE=x11)".into(),
+                "wireless-screen-sender needs a Wayland session (XDG_SESSION_TYPE=x11)".into(),
             ),
         );
     }
@@ -339,7 +339,7 @@ pub fn decide(
     done(
         steps,
         Decision::Unsupported(hyprland_hint(format!(
-            "no supported compositor found ({desktop}). od-sender creates displays on Hyprland 0.55+, Sway 1.10+, KDE Plasma 6.8+ and GNOME 50+; on other Wayland compositors pass --output <name> to use an output you created. See {README_SETUPS}"
+            "no supported compositor found ({desktop}). wireless-screen-sender creates displays on Hyprland 0.55+, Sway 1.10+, KDE Plasma 6.8+ and GNOME 50+; on other Wayland compositors pass --output <name> to use an output you created. See {README_SETUPS}"
         ))),
     )
 }
@@ -349,7 +349,8 @@ fn gnome_decision() -> Decision {
         Decision::Gnome
     } else {
         Decision::Unsupported(
-            "this od-sender was built without GNOME support (cargo feature `gnome`)".into(),
+            "this wireless-screen-sender was built without GNOME support (cargo feature `gnome`)"
+                .into(),
         )
     }
 }
@@ -364,7 +365,7 @@ fn sway(
     let path = PathBuf::from(sock);
     if !path.exists() {
         return Decision::Unsupported(format!(
-            "SWAYSOCK={sock} does not exist; run od-sender from a terminal inside Sway"
+            "SWAYSOCK={sock} does not exist; run wireless-screen-sender from a terminal inside Sway"
         ));
     }
     match registry(steps) {
@@ -374,7 +375,7 @@ fn sway(
                 Decision::Wlroots { swaysock: path }
             } else {
                 Decision::Unsupported(format!(
-                    "this Sway lacks {}; od-sender needs Sway >= 1.10",
+                    "this Sway lacks {}; wireless-screen-sender needs Sway >= 1.10",
                     missing.join(", ")
                 ))
             }
@@ -416,7 +417,7 @@ pub fn instantiate(decision: Decision) -> Result<Box<dyn Backend>> {
         Decision::Gnome => match super::gnome::GnomeBackend::connect() {
             Ok(b) => Ok(Box::new(b)),
             Err(e) => Err(anyhow!(Unsupported(format!(
-                "GNOME: Mutter's ScreenCast/RemoteDesktop D-Bus APIs are not reachable ({e:#}); od-sender needs an unsandboxed GNOME Wayland session"
+                "GNOME: Mutter's ScreenCast/RemoteDesktop D-Bus APIs are not reachable ({e:#}); wireless-screen-sender needs an unsandboxed GNOME Wayland session"
             )))),
         },
         #[cfg(not(feature = "gnome"))]

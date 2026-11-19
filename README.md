@@ -16,6 +16,7 @@ GPL-3.0 修改版本。当前版本已经更名、更换应用身份并开始独
 - macOS 接收端：`WirelessScreenReceiver`
 - Android 接收端：`io.github.mofu2003.wirelessscreen`
 - Linux 接收端（aarch64/x86_64）：`wireless-screen-receiver`
+- Linux 发送端（aarch64/x86_64）：`wireless-screen-sender`
 
 iOS 代码继续保留并可构建，但不是当前发布重点。RK3576 的安装和硬解说明
 见 [`linux/README-RK3576.md`](linux/README-RK3576.md)。
@@ -32,6 +33,8 @@ iOS 代码继续保留并可构建，但不是当前发布重点。RK3576 的安
 - macOS 与 Android 自动检查并安装已签名的 GitHub Release 更新。
 - Linux 完整包支持 GTK 4 全屏、触摸/鼠标输入回传；兼容包保证旧镜像
   可以显示。两者都支持 Rockchip MPP / mainline V4L2 硬件 H.264 解码优先。
+- Linux 发送端支持 Hyprland、Sway、KDE Plasma、GNOME 扩展屏，也可用
+  `--output` 镜像现有 Wayland 输出到 Mac 或 Android 接收端。
 - 本地画面直连，不上传屏幕内容到服务端。
 
 ## 构建
@@ -83,8 +86,11 @@ Debug APK 输出在 `Android/app/build/outputs/apk/debug/`。
 
 ### Linux
 
-Linux 接收端复用 `linux/` 下的 Rust、GTK 4 和 GStreamer 工程，发布两个
-包：
+Linux 发送端使用同一工程的 Rust、Wayland 采集、FFmpeg/x264 编码和 mDNS
+发现链路。中文安装、镜像模式、配置和排错见
+[`linux/README-SENDER.md`](linux/README-SENDER.md)。
+
+Linux 接收端复用 `linux/` 下的 Rust、GTK 4 和 GStreamer 工程，发布两个包：
 
 - 完整包：Ubuntu 24.04+ / GTK 4.14+，支持 GTK 全屏、触控回传和 DMABuf。
 - 兼容包：Ubuntu 22.04 / Debian 12，使用 `waylandsink` 全屏显示和硬解，
@@ -94,20 +100,20 @@ Linux 接收端复用 `linux/` 下的 Rust、GTK 4 和 GStreamer 工程，发布
 
 ```sh
 cd linux
-OD_RECEIVER_VERSION=0.1.2 \
+OD_RECEIVER_VERSION=0.1.3 \
   cargo build --locked --release -p od-receiver
-OD_RECEIVER_VERSION=0.1.2 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.2 "$(uname -m)" full
+OD_RECEIVER_VERSION=0.1.3 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.3 "$(uname -m)" full
 ```
 
 兼容包的构建命令：
 
 ```sh
 cd linux
-OD_RECEIVER_VERSION=0.1.2 cargo build --locked --release -p od-receiver \
+OD_RECEIVER_VERSION=0.1.3 cargo build --locked --release -p od-receiver \
   --no-default-features --features gstreamer,logind
-OD_RECEIVER_VERSION=0.1.2 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.2 "$(uname -m)" compat
+OD_RECEIVER_VERSION=0.1.3 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.3 "$(uname -m)" compat
 ```
 
 兼容包不能带 `gtk` 特性；上面的示例已经给出正确的特性组合。RK3576 的
@@ -118,8 +124,8 @@ OD_RECEIVER_VERSION=0.1.2 \
 
 发布由 `.github/workflows/release.yml` 负责：
 
-- 推送 `v0.1.2` 这样的 tag，工作流会构建并签名 macOS Sender、macOS
-  Receiver、Android APK，以及 Linux aarch64/x86_64 接收端压缩包。
+- 推送 `v0.1.3` 这样的 tag，工作流会构建并签名 macOS Sender、macOS
+  Receiver、Android APK，以及 Linux aarch64/x86_64 接收端和发送端压缩包。
 - macOS 使用 Sparkle 的 EdDSA 签名 appcast，默认每 6 小时检查一次。
 - Android 使用 `public/android-version.json`，自动下载 APK、校验 SHA-256，
   然后交给 Android 系统安装器确认。客户端使用 `refs/heads/main` 形式的

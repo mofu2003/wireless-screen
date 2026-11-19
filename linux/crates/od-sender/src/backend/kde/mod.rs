@@ -107,7 +107,9 @@ impl Backend for KdeBackend {
             match lock::try_lock(&name)? {
                 Some(l) => held.push(l),
                 None => {
-                    info!("{name} is in use by a running od-sender; leaving the layout alone");
+                    info!(
+                        "{name} is in use by a running wireless-screen-sender; leaving the layout alone"
+                    );
                     return Ok(Vec::new());
                 }
             }
@@ -156,7 +158,7 @@ impl KdeDisplay {
         let name = output_name(&self.spec.name);
         self.stream = Some(VirtualOutputStream::open(Request {
             name: self.spec.name.clone(),
-            description: "OpenDisplay".into(),
+            description: "WirelessScreen".into(),
             width,
             height,
             scale: self.spec.scale,

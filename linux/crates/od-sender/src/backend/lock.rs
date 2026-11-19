@@ -1,7 +1,7 @@
 //! One sender per virtual output. A second sender for the same receiver would
 //! adopt and reconfigure an output the first is still capturing, which takes
 //! Hyprland down (see [`super::VirtualDisplay`]). The lock is an `flock` on
-//! `$XDG_RUNTIME_DIR/opendisplay/<name>.lock`, released when the file closes,
+//! `$XDG_RUNTIME_DIR/wireless-screen/<name>.lock`, released when the file closes,
 //! including on a crash.
 
 use std::fs::File;
@@ -27,10 +27,14 @@ impl std::fmt::Display for LockHeld {
         match self.pid {
             Some(pid) => write!(
                 f,
-                "another od-sender (pid {pid}) is already driving {}",
+                "another wireless-screen-sender (pid {pid}) is already driving {}",
                 self.name
             ),
-            None => write!(f, "another od-sender is already driving {}", self.name),
+            None => write!(
+                f,
+                "another wireless-screen-sender is already driving {}",
+                self.name
+            ),
         }
     }
 }
@@ -54,7 +58,7 @@ pub fn dir() -> PathBuf {
     std::env::var_os("XDG_RUNTIME_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(std::env::temp_dir)
-        .join("opendisplay")
+        .join("wireless-screen")
 }
 
 /// Every output lock name in [`dir`], held or not (lock files outlive their

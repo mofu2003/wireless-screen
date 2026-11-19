@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Writes THIRD-PARTY-LICENSES.txt for an od-sender release tarball.
+"""Writes THIRD-PARTY-LICENSES.txt for a WirelessScreen Sender tarball.
 
 Covers everything linked into the binary:
   * every Rust crate od-sender links (normal dependencies, transitively, for
@@ -69,8 +69,8 @@ def main() -> int:
     meta = metadata(workspace)
     own = {p["name"] for p in meta["packages"] if p["source"] is None}
     out = [
-        "Third-party software in this od-sender binary\n",
-        "od-sender itself is GPL-3.0-only (see LICENSE). It statically links the\n"
+        "Third-party software in this WirelessScreen Sender binary\n",
+        "WirelessScreen Sender is GPL-3.0-only (see LICENSE). It statically links the\n"
         "components below. FFmpeg is built with --enable-gpl and x264 is GPL, so the\n"
         "binary as a whole is distributed under the GPL-3.0; the other components'\n"
         "notices follow as their licences require.\n",

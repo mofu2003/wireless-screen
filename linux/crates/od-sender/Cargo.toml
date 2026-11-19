@@ -1,6 +1,6 @@
 [package]
 name = "od-sender"
-description = "OpenDisplay sender for Linux: extends a Wayland desktop onto an OpenDisplay receiver (PROTOCOL.md pv 3)."
+description = "WirelessScreen sender for Linux: extends or mirrors a Wayland desktop onto a WirelessScreen receiver (PROTOCOL.md pv 3)."
 version.workspace = true
 edition.workspace = true
 license.workspace = true

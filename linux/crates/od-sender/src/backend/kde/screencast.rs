@@ -117,7 +117,7 @@ fn run(req: Request, stop: &AtomicBool, ready: &mpsc::Sender<Result<Node>>) -> R
     let mut st = State::default();
     queue.roundtrip(&mut st)?;
     let (manager, version) = st.manager.clone().context(
-        "KWin does not offer zkde_screencast_unstable_v1 to od-sender (KWin < 6.8 lists it only for programs named in a .desktop file's X-KDE-Wayland-Interfaces)",
+        "KWin does not offer zkde_screencast_unstable_v1 to wireless-screen-sender (KWin < 6.8 lists it only for programs named in a .desktop file's X-KDE-Wayland-Interfaces)",
     )?;
     if version < 2 {
         bail!("zkde_screencast_unstable_v1 v{version} cannot create virtual outputs (needs v2)");

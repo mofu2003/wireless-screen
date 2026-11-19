@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.1.3] - 2026-11-19
+
+### Linux
+
+- 新增 Linux 发送端发布包：aarch64 与 x86_64 均提供可直接安装的
+  `WirelessScreenSender` 压缩包。
+- Linux 发送端支持 Hyprland、Sway、KDE Plasma 和 GNOME 创建扩展屏；
+  其他具备所需协议的 Wayland 合成器可用 `--output` 镜像现有输出。
+- 复用现有 OpenDisplay v3 协议、mDNS 发现、TCP 9000 视频流和 UDP 9001
+  光标通道，可连接 macOS 或 Android 接收端。
+- 产品命令统一为 `wireless-screen-sender`，配置迁移到
+  `~/.config/wireless-screen/sender.toml`，发布包包含桌面入口、
+  systemd 用户服务和安装脚本。
+- 发布包静态链接 FFmpeg 与 x264，目标系统只需提供 glibc、C/C++ 运行库
+  和 PipeWire 运行库。
+
+### 验证
+
+- Linux sender 154 项单元测试、Clippy 和格式检查通过。
+- 在 Debian testing arm64 容器内的 Sway 1.12 上，将动态桌面通过
+  `ext-image-copy-capture` 投到 macOS 接收端：稳定 29–30 fps，
+  接收端回传端到端延迟约 35 ms，并确认 Mac 全屏显示时钟画面。
+- 动态链接依赖检查、安装脚本、桌面入口和 systemd 用户服务安装/卸载通过。
+- 未连接 RK3576 实机；实体 Android 平板接收端未在本轮复测，使用同一
+  协议但需要按实际设备验证。
+
 ## [0.1.2] - 2026-11-19
 
 ### Linux

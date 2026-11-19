@@ -191,7 +191,7 @@ fn run(
         }
         None => Some(src.node),
     };
-    let stream = pw::stream::StreamBox::new(&core, "od-sender", props)?;
+    let stream = pw::stream::StreamBox::new(&core, "wireless-screen-sender", props)?;
 
     let data = Data {
         sink,

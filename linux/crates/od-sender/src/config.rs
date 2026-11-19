@@ -1,4 +1,4 @@
-//! `$XDG_CONFIG_HOME/opendisplay/sender.toml`:
+//! `$XDG_CONFIG_HOME/wireless-screen/sender.toml`:
 //! defaults for `run`'s options, plus per-receiver overrides. Keys are the
 //! long option names. Precedence, highest first: command line, the
 //! receiver's `[receiver."<id or name>"]` table, the top level, built-in
@@ -15,7 +15,7 @@
 //! capture = "auto"           # auto | ext | wlr (auto: wlr on Hyprland < 0.57)
 //! tailscale = true           # false: never probe Tailscale peers (#409)
 //!
-//! [receiver."3F2A9C1E-..."]   # id (from `od-sender list`) or Bonjour name
+//! [receiver."3F2A9C1E-..."]   # id (from `wireless-screen-sender list`) or Bonjour name
 //! position = "auto-left"
 //! scale = 2
 //! bitrate-mbps = 30
@@ -213,13 +213,13 @@ impl Config {
     }
 }
 
-/// `$XDG_CONFIG_HOME/opendisplay/sender.toml`, falling back to `~/.config`.
+/// `$XDG_CONFIG_HOME/wireless-screen/sender.toml`, falling back to `~/.config`.
 pub fn default_path() -> Option<PathBuf> {
     let base = std::env::var_os("XDG_CONFIG_HOME")
         .filter(|v| !v.is_empty())
         .map(PathBuf::from)
         .or_else(|| std::env::var_os("HOME").map(|h| PathBuf::from(h).join(".config")))?;
-    Some(base.join("opendisplay").join("sender.toml"))
+    Some(base.join("wireless-screen").join("sender.toml"))
 }
 
 /// The built-in defaults, the bottom layer.
@@ -350,7 +350,7 @@ mod tests {
 
     #[test]
     fn a_missing_file_is_fine_unless_asked_for() {
-        let p = Path::new("/nonexistent/opendisplay/sender.toml");
+        let p = Path::new("/nonexistent/wireless-screen/sender.toml");
         assert_eq!(Config::load(p, false).unwrap(), Config::default());
         assert!(Config::load(p, true).is_err());
     }

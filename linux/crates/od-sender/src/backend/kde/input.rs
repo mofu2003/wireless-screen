@@ -68,14 +68,14 @@ impl FakeInput {
         let mut st = State { fake: None };
         queue.roundtrip(&mut st)?;
         let (input, version) = st.fake.take().context(
-            "KWin does not offer org_kde_kwin_fake_input to od-sender (KWin < 6.8 lists it only for programs named in a .desktop file's X-KDE-Wayland-Interfaces)",
+            "KWin does not offer org_kde_kwin_fake_input to wireless-screen-sender (KWin < 6.8 lists it only for programs named in a .desktop file's X-KDE-Wayland-Interfaces)",
         )?;
         if version < 3 {
             warn!("org_kde_kwin_fake_input v{version} has no absolute motion; input will not work");
         }
         input.authenticate(
-            "OpenDisplay".into(),
-            "Input from the OpenDisplay receiver".into(),
+            "WirelessScreen".into(),
+            "Input from the WirelessScreen receiver".into(),
         );
         conn.flush()?;
         Ok(Self {

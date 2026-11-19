@@ -33,13 +33,15 @@ impl Found {
 
 /// What to check when no receiver answers (PROTOCOL §2.1: Bonjour on the LAN).
 pub const NO_RECEIVER_HINT: &str = "\
-Is the OpenDisplay app open and in the foreground on the device, on the same
-Wi-Fi as this computer (not a guest network)? On iPhone and iPad, Settings >
-Privacy & Security > Local Network must allow OpenDisplay. Bonjour does not
-cross VPNs: over Tailscale or another VPN, connect with
-`od-sender run --to <vpn-ip>:9000` (`tailscale ip -4 <device>` prints it).
-Try `od-sender list --timeout 10`, or connect directly with
-`od-sender run --to <device-ip>:9000`.";
+Is WirelessScreenReceiver open and in the foreground on the Mac, or the
+WirelessScreen receiver app open on the Android device, on the same Wi-Fi as
+this computer (not a guest network)? On macOS, allow Local Network access for
+WirelessScreenReceiver. Bonjour does not cross VPNs: over Tailscale or another
+VPN, connect with
+`wireless-screen-sender run --to <vpn-ip>:9000`
+(`tailscale ip -4 <device>` prints it). Try
+`wireless-screen-sender list --timeout 10`, or connect directly with
+`wireless-screen-sender run --to <device-ip>:9000`.";
 
 /// Discovery found nothing.
 #[derive(Debug)]
@@ -60,7 +62,7 @@ impl std::fmt::Display for NoReceiver {
                 for r in &self.others {
                     writeln!(f, "  {}  ({})", r.instance, r.addr)?;
                 }
-                return write!(f, "connect with: od-sender connect <name>");
+                return write!(f, "connect with: wireless-screen-sender connect <name>");
             }
             Some(t) => write!(
                 f,
@@ -90,7 +92,7 @@ impl std::fmt::Display for SeveralReceivers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "several receivers found; pick one with `od-sender connect <name>`:"
+            "several receivers found; pick one with `wireless-screen-sender connect <name>`:"
         )?;
         for r in &self.0 {
             writeln!(
@@ -103,7 +105,7 @@ impl std::fmt::Display for SeveralReceivers {
         }
         write!(
             f,
-            "(or set `to = \"<name>\"` in ~/.config/opendisplay/sender.toml)"
+            "(or set `to = \"<name>\"` in ~/.config/wireless-screen/sender.toml)"
         )
     }
 }
@@ -446,7 +448,7 @@ mod tests {
         );
         let e = SeveralReceivers(vec![r("iPhone", "A"), r("iMac", "B")]).to_string();
         assert!(
-            e.contains("od-sender connect <name>") && e.contains("iMac"),
+            e.contains("wireless-screen-sender connect <name>") && e.contains("iMac"),
             "{e}"
         );
     }

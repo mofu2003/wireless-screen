@@ -24,17 +24,21 @@ use tracing::{error, info};
 use backend::detect::{self, Request};
 use backend::{BackendId, Position};
 
-/// OpenDisplay sender for Linux: extends a Wayland desktop onto an
-/// OpenDisplay receiver.
+/// WirelessScreen sender for Linux: extends or mirrors a Wayland desktop
+/// onto a Mac or Android receiver.
 #[derive(Parser, Debug)]
-#[command(version = env!("OD_SENDER_VERSION"), about)]
+#[command(
+    name = "wireless-screen-sender",
+    version = env!("OD_SENDER_VERSION"),
+    about
+)]
 struct Args {
     /// Target one of several running Hyprland instances, like `hyprctl -i`
-    /// (index from `od-sender doctor`, or the full signature). Sets
+    /// (index from `wireless-screen-sender doctor`, or the full signature). Sets
     /// HYPRLAND_INSTANCE_SIGNATURE and WAYLAND_DISPLAY for this process.
     #[arg(long, global = true, value_name = "SIG|INDEX")]
     instance: Option<String>,
-    /// Config file; default `$XDG_CONFIG_HOME/opendisplay/sender.toml`.
+    /// Config file; default `$XDG_CONFIG_HOME/wireless-screen/sender.toml`.
     #[arg(long, global = true, value_name = "PATH")]
     config: Option<std::path::PathBuf>,
     #[command(subcommand)]
@@ -83,7 +87,7 @@ enum Cmd {
         /// receiver on the network (several: pick one with --to).
         #[arg(long, value_name = "NAME|ID|ADDR")]
         to: Option<String>,
-        /// Same as --to: `od-sender connect iMac`.
+        /// Same as --to: `wireless-screen-sender connect iMac`.
         #[arg(value_name = "RECEIVER", conflicts_with = "to")]
         receiver: Option<String>,
         /// Keep looking until the receiver appears instead of giving up after

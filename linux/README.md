@@ -1,4 +1,8 @@
-# OpenDisplay Linux sender (beta)
+# WirelessScreen Linux sender
+
+> **中文安装与使用说明：**
+> [`README-SENDER.md`](README-SENDER.md)。Linux 发送端可以把 Wayland 桌面
+> 扩展或镜像到 Mac / Android 接收端。
 
 > **Docs:** the same guide, split into pages (install, usage, configuration,
 > desktops, receiver, troubleshooting), is at
