@@ -30,6 +30,8 @@ iOS 代码继续保留并可构建，但不是当前发布重点。RK3576 的安
 - Android 支持跟随设备旋转，也可在设置中固定横屏或竖屏。
 - 自动、30、60、90、120 fps 帧率选择。
 - macOS 与 Android 自动检查并安装已签名的 GitHub Release 更新。
+- Linux 发送端和接收端支持 `update --check` 与 `update`：从 GitHub Release
+  下载对应架构/变体、校验 SHA-256，并调用现有安装脚本保留配置地覆盖安装。
 - Linux 完整包支持 GTK 4 全屏、触摸/鼠标输入回传；兼容包保证旧镜像
   可以显示。两者都支持 Rockchip MPP / mainline V4L2 硬件 H.264 解码优先。
 - Linux 发送端支持 Hyprland、Sway、KDE Plasma、GNOME 扩展屏；GNOME
@@ -92,20 +94,20 @@ Linux 接收端复用 `linux/` 下的 Rust、GTK 4 和 GStreamer 工程，发布
 
 ```sh
 cd linux
-OD_RECEIVER_VERSION=0.1.4 \
+OD_RECEIVER_VERSION=0.1.5 \
   cargo build --locked --release -p od-receiver
-OD_RECEIVER_VERSION=0.1.4 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.4 "$(uname -m)" full
+OD_RECEIVER_VERSION=0.1.5 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.5 "$(uname -m)" full
 ```
 
 兼容包的构建命令：
 
 ```sh
 cd linux
-OD_RECEIVER_VERSION=0.1.4 cargo build --locked --release -p od-receiver \
+OD_RECEIVER_VERSION=0.1.5 cargo build --locked --release -p od-receiver \
   --no-default-features --features gstreamer,logind
-OD_RECEIVER_VERSION=0.1.4 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.4 "$(uname -m)" compat
+OD_RECEIVER_VERSION=0.1.5 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.5 "$(uname -m)" compat
 ```
 
 兼容包不能带 `gtk` 特性；上面的示例已经给出正确的特性组合。RK3576 的
@@ -116,12 +118,16 @@ OD_RECEIVER_VERSION=0.1.4 \
 
 发布由 `.github/workflows/release.yml` 负责：
 
-- 推送 `v0.1.4` 这样的 tag，工作流会构建并签名统一的 macOS App、
+- 推送 `v0.1.5` 这样的 tag，工作流会构建并签名统一的 macOS App、
   Android APK，以及 Linux aarch64/x86_64 接收端和发送端压缩包。
 - macOS 使用 Sparkle 的 EdDSA 签名 appcast，默认每 6 小时检查一次。
 - Android 使用 `public/android-version.json`，自动下载 APK、校验 SHA-256，
   然后交给 Android 系统安装器确认。客户端使用 `refs/heads/main` 形式的
   raw 地址，避开短路径 CDN 可能返回的陈旧 404。
+- Linux 使用 `public/linux-version.json`，为发送端、接收端完整包和兼容包
+  分别提供 aarch64/x86_64 的下载地址与 SHA-256。用户运行
+  `wireless-screen-sender update` 或 `wireless-screen-receiver update`
+  即可检查并安装。
 - 更新文件和更新清单必须从公网匿名可读；因此 GitHub 仓库需要是公开仓库。
 
 macOS 目前使用 ad-hoc 签名，未经过 Apple 公证。首次打开或在更新后，macOS

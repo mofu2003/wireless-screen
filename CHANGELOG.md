@@ -1,5 +1,32 @@
 # Changelog
 
+## [0.1.5] - 2026-11-20
+
+### Linux 更新
+
+- Linux 发送端新增 `wireless-screen-sender update --check` 和
+  `wireless-screen-sender update`；接收端提供同名命令。
+- 更新器从 `public/linux-version.json` 获取最新版本，按当前 CPU 架构选择
+  aarch64 或 x86_64 安装包；接收端还会按完整包/兼容包自动选择，避免互相
+  覆盖。
+- 下载后校验 SHA-256，再调用发布包内的现有安装脚本覆盖程序、桌面入口和
+  systemd 服务；发送端配置和接收端安装 ID 保持不变。
+- 支持用户级与系统级安装。系统级更新需要 `sudo`，发行版包管理器或
+  Flatpak 安装会拒绝自行覆盖。
+- Release 工作流新增生成 `public/linux-version.json`，列出 sender、
+  receiver-full、receiver-compat 在两个架构上的下载地址和 SHA-256。
+- 增加更新命令的中文文档、错误提示和手动检查入口；不做后台自动安装。
+
+### 验证
+
+- Linux workspace 共 231 项测试通过，格式检查和 Clippy 通过。
+- 使用带更新功能的 0.1.4 测试二进制和本地 HTTP 更新源，实际覆盖安装到
+  0.1.5：发送端、接收端完整包和兼容包均通过 SHA-256 校验，版本输出为
+  0.1.5，发送端配置与接收端安装 ID 保留。
+- 校验值错误时安装被拒绝；非 root 用户执行系统级更新会提示使用 `sudo`。
+- 未连接 RK3576 实机，也未在实体 GNOME 桌面执行图形会话更新；发布后
+  继续验证公开 GitHub 更新源。
+
 ## [0.1.4] - 2026-11-20
 
 ### macOS

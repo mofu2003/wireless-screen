@@ -30,5 +30,7 @@
 - 修复 Android 查找 Mac 列表的蓝底蓝字可读性问题。
 - 新增 Linux Wayland 发送端，支持扩展屏、GNOME `RecordMonitor` 镜像和
   其他现有输出镜像，可投送到统一的 macOS App 或 Android 接收端。
+- 新增 Linux 发送端/接收端手动更新命令，复用 Release 安装包并通过
+  SHA-256 校验后覆盖安装。
 
 修改日期：2026-11-20。

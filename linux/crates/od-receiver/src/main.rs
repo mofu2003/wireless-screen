@@ -2,9 +2,10 @@ use std::net::SocketAddr;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
-use clap::Parser;
+use clap::{Args as ClapArgs, Parser, Subcommand};
 use od_receiver::video::{SinkKind, VideoConfig};
 use od_receiver::{Config, Receiver, discovery, id, outputs};
+use od_update::{Component, InstallScope, UpdateOptions};
 use opendisplay_proto::control::{Hello, Panel, VideoCap};
 use tokio::sync::watch;
 use tracing::{info, warn};
@@ -17,6 +18,14 @@ use tracing::{info, warn};
     about = "Use this screen as a wireless display for a WirelessScreen sender"
 )]
 struct Args {
+    #[command(subcommand)]
+    command: Option<Cmd>,
+    #[command(flatten)]
+    serve: ServeArgs,
+}
+
+#[derive(ClapArgs, Debug)]
+struct ServeArgs {
     /// TCP listen address (§1: the receiver listens).
     #[arg(long, default_value = "0.0.0.0:9000")]
     listen: SocketAddr,
@@ -73,6 +82,22 @@ struct Args {
     stats_every: f64,
 }
 
+#[derive(Subcommand, Debug)]
+enum Cmd {
+    /// Check for and install a newer Linux receiver release.
+    Update {
+        /// Only report whether an update is available.
+        #[arg(long)]
+        check: bool,
+        /// Install into /usr/local (run with sudo when updating a system install).
+        #[arg(long, conflicts_with = "user")]
+        system: bool,
+        /// Install into ~/.local even when auto-detection would choose system.
+        #[arg(long, conflicts_with = "system")]
+        user: bool,
+    },
+}
+
 fn default_sink() -> SinkKind {
     if cfg!(feature = "gtk") {
         SinkKind::Gtk
@@ -92,7 +117,7 @@ struct PanelGuess {
     output: Option<String>,
 }
 
-fn hello(a: &Args, guess: PanelGuess, install_id: &str) -> Result<Hello> {
+fn hello(a: &ServeArgs, guess: PanelGuess, install_id: &str) -> Result<Hello> {
     let (width, height) = match (a.width, a.height, guess.pixels) {
         (Some(w), Some(h), _) => (w, h),
         (w, h, Some((gw, gh))) => (w.unwrap_or(gw), h.unwrap_or(gh)),
@@ -143,7 +168,7 @@ fn hello(a: &Args, guess: PanelGuess, install_id: &str) -> Result<Hello> {
 }
 
 /// Panel facts from wl_output (the non-GTK sinks).
-fn wayland_guess(a: &Args) -> PanelGuess {
+fn wayland_guess(a: &ServeArgs) -> PanelGuess {
     let fallback = || PanelGuess {
         output: a.output.clone(),
         ..Default::default()
@@ -187,7 +212,7 @@ fn wayland_guess(a: &Args) -> PanelGuess {
     }
 }
 
-fn config(a: &Args, hello: Hello) -> Config {
+fn config(a: &ServeArgs, hello: Hello) -> Config {
     Config {
         listen: a.listen,
         hello,
@@ -198,7 +223,7 @@ fn config(a: &Args, hello: Hello) -> Config {
 
 /// Advertise, serve until `shutdown`, withdraw.
 async fn serve(
-    a: &Args,
+    a: &ServeArgs,
     receiver: Receiver,
     install_id: &str,
     shutdown: watch::Receiver<bool>,
@@ -254,7 +279,36 @@ fn main() -> Result<()> {
         )
         .with_target(false)
         .init();
-    let a = Args::parse();
+    let Args {
+        command,
+        serve: serve_args,
+    } = Args::parse();
+    if let Some(Cmd::Update {
+        check,
+        system,
+        user,
+    }) = command
+    {
+        let scope = if system {
+            Some(InstallScope::System)
+        } else if user {
+            Some(InstallScope::User)
+        } else {
+            None
+        };
+        let component = if cfg!(feature = "gtk") {
+            Component::ReceiverFull
+        } else {
+            Component::ReceiverCompat
+        };
+        od_update::run(
+            component,
+            env!("OD_RECEIVER_VERSION"),
+            UpdateOptions { check, scope },
+        )?;
+        return Ok(());
+    }
+    let a = serve_args;
     info!("platform: {}", od_receiver::platform::get().summary());
     #[cfg(feature = "gtk")]
     if a.sink == SinkKind::Gtk {
@@ -295,7 +349,7 @@ fn main() -> Result<()> {
 /// its own runtime. Ctrl-C and closing the window both end the session with
 /// `closing`, then the window goes.
 #[cfg(feature = "gtk")]
-fn gtk_main(a: Args) -> Result<()> {
+fn gtk_main(a: ServeArgs) -> Result<()> {
     use od_receiver::gtk_ui::{self, GtkVideo, WindowOptions};
     use od_receiver::video::VideoOutput;
     use std::sync::Arc;

@@ -62,6 +62,36 @@ sudo ./install.sh --system
 
 如果 `~/.local/bin` 原本不在 `PATH`，重新登录一次。
 
+## 更新
+
+发送端会从官方 GitHub Release 获取更新清单，自动选择 aarch64 或 x86_64
+安装包，校验 SHA-256 后调用包内安装脚本覆盖程序。配置文件
+`~/.config/wireless-screen/sender.toml` 会保留。
+
+```sh
+wireless-screen-sender update --check
+wireless-screen-sender update
+```
+
+`--check` 只显示当前版本和最新版本；`update` 会直接下载并安装。系统级
+安装需要管理员权限：
+
+```sh
+sudo wireless-screen-sender update
+```
+
+也可以显式指定安装范围：
+
+```sh
+wireless-screen-sender update --user
+wireless-screen-sender update --system
+```
+
+更新需要系统提供 `curl`、`tar` 和 `bash`。已经运行中的发送端或 systemd
+服务需要重启后才会使用新版本。当前不会在后台自动安装，检查与安装都由
+上面的命令触发。通过发行版包管理器、Flatpak 或其他只读系统安装时，请使用
+对应包管理器的更新方式。
+
 ## 使用
 
 先打开 Mac 或 Android 上的接收端，并让它停留在前台：

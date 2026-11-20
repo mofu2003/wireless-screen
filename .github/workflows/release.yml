@@ -355,7 +355,7 @@ jobs:
           path: dist
           merge-multiple: true
 
-      - name: Build release notes and Android manifest
+      - name: Build release notes and update manifests
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
           VERSION_CODE: ${{ needs.prepare.outputs.version_code }}
@@ -400,6 +400,78 @@ jobs:
           )
           PY
 
+          python3 - "$VERSION" "$TAG" <<'PY'
+          import json
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          version, tag = sys.argv[1:]
+          dist = Path("dist")
+          packages = {}
+
+          def checksum(archive: Path) -> str:
+              sidecar = archive.with_name(archive.name + ".sha256")
+              if not sidecar.is_file():
+                  raise SystemExit(f"missing checksum: {sidecar}")
+              value = sidecar.read_text(encoding="utf-8").split()[0].lower()
+              if not re.fullmatch(r"[0-9a-f]{64}", value):
+                  raise SystemExit(f"invalid checksum in {sidecar}")
+              return value
+
+          def add(key: str, archive: Path) -> None:
+              if key in packages:
+                  raise SystemExit(f"duplicate Linux package: {key}")
+              packages[key] = {
+                  "url": f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/releases/download/{tag}/{archive.name}",
+                  "sha256": checksum(archive),
+              }
+
+          for archive in dist.glob("WirelessScreenSender-*.tar.gz"):
+              match = re.fullmatch(
+                  r"WirelessScreenSender-(.+)-linux-(aarch64|x86_64)\.tar\.gz",
+                  archive.name,
+              )
+              if not match or match.group(1) != version:
+                  raise SystemExit(f"unexpected sender archive: {archive.name}")
+              add(f"sender-{match.group(2)}", archive)
+
+          for archive in dist.glob("WirelessScreenReceiver-*.tar.gz"):
+              match = re.fullmatch(
+                  r"WirelessScreenReceiver-(.+)-linux-(aarch64|x86_64)(-compat)?\.tar\.gz",
+                  archive.name,
+              )
+              if not match or match.group(1) != version:
+                  raise SystemExit(f"unexpected receiver archive: {archive.name}")
+              variant = "compat" if match.group(3) else "full"
+              add(f"receiver-{variant}-{match.group(2)}", archive)
+
+          expected = {
+              f"sender-{arch}" for arch in ("aarch64", "x86_64")
+          } | {
+              f"receiver-{variant}-{arch}"
+              for variant in ("full", "compat")
+              for arch in ("aarch64", "x86_64")
+          }
+          if set(packages) != expected:
+              missing = sorted(expected - set(packages))
+              extra = sorted(set(packages) - expected)
+              raise SystemExit(f"Linux package set mismatch; missing={missing} extra={extra}")
+
+          notes = Path("release-notes.md").read_text(encoding="utf-8").strip()
+          manifest = {
+              "version": version,
+              "tag": tag,
+              "notes": notes,
+              "packages": dict(sorted(packages.items())),
+          }
+          Path("public/linux-version.json").write_text(
+              json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -429,7 +501,7 @@ jobs:
           cp dist/appcast.xml public/appcast.xml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/android-version.json public/appcast.xml
+          git add public/android-version.json public/appcast.xml public/linux-version.json
           if git diff --cached --quiet; then
             echo "Update feeds unchanged"
           else

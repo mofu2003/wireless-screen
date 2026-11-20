@@ -6,6 +6,7 @@ members = [
     "crates/od-fake-sender",
     "crates/od-receiver",
     "crates/od-sender",
+    "crates/od-update",
 ]
 
 [workspace.package]
@@ -18,8 +19,12 @@ rust-version = "1.85"
 [workspace.dependencies]
 opendisplay-proto = { path = "crates/opendisplay-proto" }
 opendisplay-session = { path = "crates/opendisplay-session" }
+od-update = { path = "crates/od-update" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
+semver = "1"
+sha2 = "0.10"
+tempfile = "3"
 thiserror = "2"
 proptest = "1"
 tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "time", "macros", "fs", "signal", "sync"] }

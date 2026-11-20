@@ -23,6 +23,7 @@ use tracing::{error, info};
 
 use backend::detect::{self, Request};
 use backend::{BackendId, Position, SendMode};
+use od_update::{Component, InstallScope, UpdateOptions};
 
 /// WirelessScreen sender for Linux: extends or mirrors a Wayland desktop
 /// onto a Mac or Android receiver.
@@ -178,6 +179,18 @@ enum Cmd {
     Clean {
         #[command(flatten)]
         backend: BackendArgs,
+    },
+    /// Check for and install a newer Linux sender release.
+    Update {
+        /// Only report whether an update is available.
+        #[arg(long)]
+        check: bool,
+        /// Install into /usr/local (run with sudo when updating a system install).
+        #[arg(long, conflicts_with = "user")]
+        system: bool,
+        /// Install into ~/.local even when auto-detection would choose system.
+        #[arg(long, conflicts_with = "system")]
+        user: bool,
     },
     /// Developer self-tests.
     #[command(hide = true)]
@@ -415,6 +428,24 @@ fn real_main() -> Result<i32> {
             } else {
                 info!("removed {}", removed.join(", "));
             }
+        }
+        Cmd::Update {
+            check,
+            system,
+            user,
+        } => {
+            let scope = if system {
+                Some(InstallScope::System)
+            } else if user {
+                Some(InstallScope::User)
+            } else {
+                None
+            };
+            od_update::run(
+                Component::Sender,
+                env!("OD_SENDER_VERSION"),
+                UpdateOptions { check, scope },
+            )?;
         }
         Cmd::Dev { cmd } => dev::run(cmd)?,
     }

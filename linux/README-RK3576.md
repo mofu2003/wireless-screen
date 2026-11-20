@@ -28,16 +28,16 @@ Linux 的 GTK/GStreamer ABI 不兼容所有发行版，因此发布两个包：
 把对应架构的压缩包传到板子，例如：
 
 ```sh
-tar xf WirelessScreenReceiver-0.1.4-linux-aarch64.tar.gz
-cd WirelessScreenReceiver-0.1.4-linux-aarch64
+tar xf WirelessScreenReceiver-0.1.5-linux-aarch64.tar.gz
+cd WirelessScreenReceiver-0.1.5-linux-aarch64
 ./install.sh
 ```
 
 旧镜像使用兼容包：
 
 ```sh
-tar xf WirelessScreenReceiver-0.1.4-linux-aarch64-compat.tar.gz
-cd WirelessScreenReceiver-0.1.4-linux-aarch64-compat
+tar xf WirelessScreenReceiver-0.1.5-linux-aarch64-compat.tar.gz
+cd WirelessScreenReceiver-0.1.5-linux-aarch64-compat
 ./install.sh
 ```
 
@@ -68,11 +68,37 @@ systemctl --user enable --now wireless-screen-receiver
 
 如果板端镜像没有 systemd 用户会话，或者桌面环境不会启动
 `graphical-session.target`，请把启动命令加入桌面自启动，不要直接依赖这个
-服务。覆盖安装使用新版本的同一个 `install.sh`，卸载：
+服务。卸载：
 
 ```sh
 ./install.sh --uninstall
 ```
+
+## 更新
+
+接收端可以从官方 GitHub Release 检查并安装更新；完整包和兼容包会按当前
+编译特性自动选择，不会把兼容包误升级成缺少 GTK 的版本。更新会校验
+SHA-256，保留接收端 ID 和配置，并重新写入桌面入口与 systemd 服务。
+
+```sh
+wireless-screen-receiver update --check
+wireless-screen-receiver update
+```
+
+系统级安装使用：
+
+```sh
+sudo wireless-screen-receiver update
+```
+
+更新需要 `curl`、`tar` 和 `bash`。更新后重新打开接收端，或重启服务：
+
+```sh
+systemctl --user restart wireless-screen-receiver
+```
+
+当前不会在后台自动安装。如果接收端由发行版、Flatpak 或只读镜像管理，请
+使用对应系统方式更新。
 
 ## 运行环境
 
@@ -191,18 +217,18 @@ sudo apt install build-essential pkg-config clang \
   libgstreamer-plugins-bad1.0-dev libwayland-dev
 curl https://sh.rustup.rs -sSf | sh
 cd linux
-OD_RECEIVER_VERSION=0.1.4 cargo build --locked --release -p od-receiver
-OD_RECEIVER_VERSION=0.1.4 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.4 "$(uname -m)" full
+OD_RECEIVER_VERSION=0.1.5 cargo build --locked --release -p od-receiver
+OD_RECEIVER_VERSION=0.1.5 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.5 "$(uname -m)" full
 ```
 
 Ubuntu 22.04 / Debian 12 兼容包不链接 GTK：
 
 ```sh
-OD_RECEIVER_VERSION=0.1.4 cargo build --locked --release -p od-receiver \
+OD_RECEIVER_VERSION=0.1.5 cargo build --locked --release -p od-receiver \
   --no-default-features --features gstreamer,logind
-OD_RECEIVER_VERSION=0.1.4 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.4 "$(uname -m)" compat
+OD_RECEIVER_VERSION=0.1.5 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.5 "$(uname -m)" compat
 ```
 
 ## 当前验证边界
