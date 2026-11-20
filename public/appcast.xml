@@ -3,13 +3,13 @@
     <channel>
         <title>WirelessScreen</title>
         <item>
-            <title>0.1.4</title>
-            <pubDate>Fri, 20 Nov 2026 01:23:35 +0000</pubDate>
-            <link>https://github.com/mofu2003/wireless-screen/releases/tag/v0.1.4</link>
-            <sparkle:version>107</sparkle:version>
-            <sparkle:shortVersionString>0.1.4</sparkle:shortVersionString>
+            <title>0.1.5</title>
+            <pubDate>Fri, 20 Nov 2026 02:02:36 +0000</pubDate>
+            <link>https://github.com/mofu2003/wireless-screen/releases/tag/v0.1.5</link>
+            <sparkle:version>108</sparkle:version>
+            <sparkle:shortVersionString>0.1.5</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/mofu2003/wireless-screen/releases/download/v0.1.4/WirelessScreen-0.1.4.zip" length="4585008" type="application/octet-stream" sparkle:edSignature="mn0JYSu5FPANTNSJDHx/FRUX4jy2VY/mhQwHJSysHRZQwZ+JIYHHTQvnYe7clWQhllx0ztm9IaYDCQjHw9vFCQ=="/>
+            <enclosure url="https://github.com/mofu2003/wireless-screen/releases/download/v0.1.5/WirelessScreen-0.1.5.zip" length="4585011" type="application/octet-stream" sparkle:edSignature="G8Whwi9W0yO1OxBZHTknfze2TtrFCGrlCOUwVUQmG2hvcW2ZsJ7bDf6iw7tsx1ZD2tzKRDADtDYcWRANVr8ECg=="/>
         </item>
     </channel>
 </rss>
