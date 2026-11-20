@@ -20,21 +20,21 @@ struct ReceiverSections: View {
         } header: {
             Text("Name")
         } footer: {
-            Text("How this Mac appears in the other Mac's Devices list.")
+            Text("How this Mac appears in the sender's device list.")
         }
 
         Section {
             Toggle("Performance overlay", isOn: $showAnalytics)
         } footer: {
-            Text("FPS, bitrate, frame timing, and latency graphs at the bottom of the video window while streaming — the same HUD the iPhone app has.")
+            Text("FPS, frame timing, and latency graphs at the bottom of the video window while streaming.")
         }
 
         Section("How to connect") {
-            Label("在要扩展屏幕的 Mac 上安装并打开无线副屏。",
-                  systemImage: "macbook.and.macbook")
-            Label("With both Macs on the same network, this Mac appears in its Devices list — click Connect there.",
+            Label("在安卓、Linux 或另一台 Mac 上打开无线副屏发送端。",
+                  systemImage: "rectangle.connected.to.line.below")
+            Label("让发送设备和这台 Mac 处在同一网络，在发送端选择这台 Mac 即可投屏。",
                   systemImage: "wifi")
-            Label("The stream opens in a window here — use the green traffic light for full screen.",
+            Label("收到画面后会自动打开窗口，可用绿色交通灯按钮进入全屏。",
                   systemImage: "arrow.up.left.and.arrow.down.right")
         }
         .font(.subheadline)

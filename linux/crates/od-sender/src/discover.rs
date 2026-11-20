@@ -33,11 +33,10 @@ impl Found {
 
 /// What to check when no receiver answers (PROTOCOL §2.1: Bonjour on the LAN).
 pub const NO_RECEIVER_HINT: &str = "\
-Is WirelessScreenReceiver open and in the foreground on the Mac, or the
-WirelessScreen receiver app open on the Android device, on the same Wi-Fi as
-this computer (not a guest network)? On macOS, allow Local Network access for
-WirelessScreenReceiver. Bonjour does not cross VPNs: over Tailscale or another
-VPN, connect with
+Is WirelessScreen open on the Mac with “Receive” selected, or the WirelessScreen
+receiver app open on the Android device, on the same Wi-Fi as this computer
+(not a guest network)? On macOS, allow Local Network access for WirelessScreen.
+Bonjour does not cross VPNs: over Tailscale or another VPN, connect with
 `wireless-screen-sender run --to <vpn-ip>:9000`
 (`tailscale ip -4 <device>` prints it). Try
 `wireless-screen-sender list --timeout 10`, or connect directly with

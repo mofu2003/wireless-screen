@@ -22,7 +22,7 @@ use clap::{Args as ClapArgs, Parser, Subcommand};
 use tracing::{error, info};
 
 use backend::detect::{self, Request};
-use backend::{BackendId, Position};
+use backend::{BackendId, Position, SendMode};
 
 /// WirelessScreen sender for Linux: extends or mirrors a Wayland desktop
 /// onto a Mac or Android receiver.
@@ -51,9 +51,14 @@ pub struct BackendArgs {
     /// Force a backend instead of detecting one.
     #[arg(long, value_enum)]
     pub backend: Option<BackendId>,
-    /// Use this existing output instead of creating one (adopt mode).
+    /// Existing output to mirror. With `--mode mirror` on GNOME it selects
+    /// the monitor; elsewhere it means adopt mode (the legacy behavior).
     #[arg(long, value_name = "NAME")]
     pub output: Option<String>,
+    /// Extend with a new virtual display, or mirror an existing display.
+    /// On GNOME, mirror without --output uses the primary monitor.
+    #[arg(long, value_enum, default_value_t = SendMode::Extend)]
+    pub mode: SendMode,
     /// Capture protocol: auto (wlr-screencopy on Hyprland < 0.57, else
     /// ext-image-copy-capture), ext or wlr [default: auto, or the config
     /// file's `capture`].
@@ -67,6 +72,7 @@ impl BackendArgs {
         Request {
             backend: self.backend,
             output: self.output.clone(),
+            mode: self.mode,
             capture: self.capture.or(config).unwrap_or_default(),
         }
     }
@@ -78,9 +84,9 @@ impl BackendArgs {
 
 #[derive(Subcommand, Debug)]
 enum Cmd {
-    /// Extend the desktop onto a receiver: dial it (or discover it), create a
-    /// virtual display sized from its `hello`, capture, encode and stream.
-    /// Ctrl+C disconnects.
+    /// Send this desktop to a receiver: dial it (or discover it), then extend
+    /// with a virtual display or mirror an existing one, capture, encode and
+    /// stream. Ctrl+C disconnects.
     #[command(visible_alias = "connect")]
     Run {
         /// Receiver: `host:port`, or a name/id to discover. Omitted: the only

@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.1.4] - 2026-11-20
+
+### macOS
+
+- 扩展屏、镜像屏和接收投屏合并到同一个“无线副屏”App；主界面可在三种
+  模式间切换，切换时自动停止另一种模式。
+- 停止构建和发布独立的 Mac 接收端。接收投屏继续使用同一个 Bundle ID、
+  同一个 Sparkle 更新源和同一个应用图标。
+- 修复切换扩展/镜像模式后现有会话仍沿用旧模式的问题，并持久化模式选择。
+
+### Linux
+
+- GNOME 新增 `--mode mirror`：通过 Mutter `RecordMonitor` 直接采集现有
+  显示器，不创建、不删除虚拟显示器。
+- 不指定 `--output` 时镜像 GNOME 主显示器；指定 `--output eDP-1` 等名称
+  可镜像其他显示器。触控坐标按被镜像显示器的方向和物理像素映射。
+- Linux 应用菜单默认启动 GNOME 镜像模式，扩展屏仍可用
+  `wireless-screen-sender run` 启动。
+- Hyprland、Sway、KDE 和其他 Wayland 桌面的扩展屏与 adopt 镜像用法保持不变。
+
+### 文档与发布
+
+- macOS 发布资产只剩一个统一 App，不再生成
+  `WirelessScreenReceiver-*.zip` 或 `appcast-receiver.xml`。
+- 更新 GNOME 镜像、桌面入口和统一 Mac App 的安装说明。
+
+### 验证
+
+- macOS：168 项测试通过，统一 Debug App 可启动并进入接收模式。
+- Linux：157 项单元测试、格式检查和 Clippy 全部通过。
+- 在无头 Mutter 46 的 GNOME Wayland 会话中运行动态 SHM 客户端，通过
+  `--mode mirror` 投射到本机统一 macOS App：持续 12 秒、约 28 fps，
+  Mac 端确认收到 H.264 1280×800 @30 fps，累计发送 284 帧。
+- 未在实体 GNOME 桌面、RK3576 开发板或 Android 平板上复测本轮改动。
+
 ## [0.1.3] - 2026-11-19
 
 ### Linux

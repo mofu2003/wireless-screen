@@ -4,8 +4,8 @@
 
 ## 当前状态
 
-- macOS Sender 与 Receiver 使用 Sparkle 2.10.1，更新签名使用本仓库自己的
-  EdDSA 密钥。
+- 统一 macOS App 使用 Sparkle 2.10.1，更新签名使用本仓库自己的 EdDSA
+  密钥。发送、镜像和接收投屏都在同一个 App 内，不再发布独立 Receiver。
 - Android 使用 SHA-256 校验的 APK 更新清单，最终安装仍由系统确认。
 - Release 工作流由 `vX.Y.Z` tag 触发，也支持手动重跑。
 - 更新清单和 Release 资产要求公网匿名可读，因此仓库必须公开。
@@ -18,9 +18,9 @@
 2. 提交并推送 `main`。
 3. 创建并推送 tag，例如 `git tag v0.1.0 && git push origin v0.1.0`。
 4. 等待 `Release` 工作流完成：构建、签名、生成 appcast、创建 Release，
-   并把 `public/android-version.json`、`public/appcast.xml` 和
-   `public/appcast-receiver.xml` 提交回 `main`。
-5. 下载 Release 中的 APK 和两个 macOS zip，确认地址可匿名访问。
+   并把 `public/android-version.json` 和 `public/appcast.xml` 提交回
+   `main`。
+5. 下载 Release 中的 APK 和 macOS zip，确认地址可匿名访问。
 6. 安装旧版本，验证 macOS 手动“检查更新”和 Android 自动检查；再验证一次
    同签名 APK 覆盖安装。
 

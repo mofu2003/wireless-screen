@@ -68,7 +68,7 @@ jobs:
         run: brew install xcodegen
       - name: Generate project
         run: xcodegen generate
-      - name: Build, sign and package macOS apps
+      - name: Build, sign and package the macOS app
         env:
           VERSION: ${{ needs.prepare.outputs.version }}
           BUILD_NUMBER: ${{ needs.prepare.outputs.build_number }}
@@ -86,32 +86,16 @@ jobs:
             MARKETING_VERSION="$VERSION" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
 
-          xcodebuild build \
-            -project WirelessScreen.xcodeproj \
-            -scheme WirelessScreenMacReceiver \
-            -configuration Release \
-            -derivedDataPath build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            MARKETING_VERSION="$VERSION" \
-            CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
-
           mkdir -p dist
           SENDER="build/Build/Products/Release/WirelessScreen.app"
-          RECEIVER="build/Build/Products/Release/WirelessScreenReceiver.app"
 
           codesign --force --deep --sign - --options runtime \
             --entitlements Mac/OpenSidecarMac.entitlements "$SENDER"
-          codesign --force --deep --sign - --options runtime \
-            --entitlements MacReceiver/OpenSidecarMacReceiver.entitlements "$RECEIVER"
           codesign --verify --deep --strict --verbose=2 "$SENDER"
-          codesign --verify --deep --strict --verbose=2 "$RECEIVER"
 
           ditto -c -k --keepParent "$SENDER" "dist/WirelessScreen-$VERSION.zip"
-          ditto -c -k --keepParent "$RECEIVER" "dist/WirelessScreenReceiver-$VERSION.zip"
 
-      - name: Sign Sparkle archives and generate appcasts
+      - name: Sign the Sparkle archive and generate the appcast
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.WIRELESSSCREEN_SPARKLE_PRIVATE_KEY }}
           VERSION: ${{ needs.prepare.outputs.version }}
@@ -132,9 +116,8 @@ jobs:
           printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_ed_private"
           chmod 600 "$RUNNER_TEMP/sparkle_ed_private"
 
-          mkdir -p "$RUNNER_TEMP/appcast-sender" "$RUNNER_TEMP/appcast-receiver"
+          mkdir -p "$RUNNER_TEMP/appcast-sender"
           cp "dist/WirelessScreen-$VERSION.zip" "$RUNNER_TEMP/appcast-sender/"
-          cp "dist/WirelessScreenReceiver-$VERSION.zip" "$RUNNER_TEMP/appcast-receiver/"
 
           "$SPARKLE_BIN/generate_appcast" \
             --ed-key-file "$RUNNER_TEMP/sparkle_ed_private" \
@@ -142,12 +125,6 @@ jobs:
             --link "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}" \
             -o "dist/appcast.xml" \
             "$RUNNER_TEMP/appcast-sender"
-          "$SPARKLE_BIN/generate_appcast" \
-            --ed-key-file "$RUNNER_TEMP/sparkle_ed_private" \
-            --download-url-prefix "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/" \
-            --link "https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}" \
-            -o "dist/appcast-receiver.xml" \
-            "$RUNNER_TEMP/appcast-receiver"
 
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
@@ -434,7 +411,6 @@ jobs:
             "dist/WirelessScreen-Android.apk" \
             "dist/WirelessScreen-Android.apk.sha256" \
             "dist/WirelessScreen-$VERSION.zip" \
-            "dist/WirelessScreenReceiver-$VERSION.zip" \
             dist/WirelessScreenReceiver-*-linux-*.tar.gz \
             dist/WirelessScreenReceiver-*-linux-*.tar.gz.sha256 \
             dist/WirelessScreenSender-*-linux-*.tar.gz \
@@ -451,10 +427,9 @@ jobs:
           set -euo pipefail
           mkdir -p public
           cp dist/appcast.xml public/appcast.xml
-          cp dist/appcast-receiver.xml public/appcast-receiver.xml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add public/android-version.json public/appcast.xml public/appcast-receiver.xml
+          git add public/android-version.json public/appcast.xml
           if git diff --cached --quiet; then
             echo "Update feeds unchanged"
           else

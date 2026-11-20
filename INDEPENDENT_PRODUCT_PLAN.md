@@ -60,20 +60,19 @@
 - GitHub 仓库名：`wireless-screen`
 - GitHub 所有者：`mofu2003`
 - Bundle ID 前缀：`io.github.mofu2003.wirelessscreen`
-- macOS Sender：`io.github.mofu2003.wirelessscreen.mac`
-- macOS Receiver：`io.github.mofu2003.wirelessscreen.mac.receiver`
+- macOS 统一 App：`io.github.mofu2003.wirelessscreen.mac`
 - iOS Receiver：`io.github.mofu2003.wirelessscreen.ios`
 - Android applicationId / namespace：`io.github.mofu2003.wirelessscreen`
 
 对外显示名统一使用“无线副屏”。Xcode target、可执行文件、Bundle ID、Gradle namespace 和脚本路径全部使用 ASCII 名称，避免签名、路径和 CI 兼容问题。
 
-Receiver 的显示名使用“无线副屏接收端”，构建名使用 `WirelessScreenReceiver`。
+macOS 的扩展、镜像和接收投屏共用“无线副屏”App，不再生成独立接收端。
 
 第一阶段聚焦：
 
-- macOS Sender
-- macOS Receiver
+- macOS 统一 App（发送扩展屏、发送镜像、接收投屏）
 - Android Receiver
+- Linux Sender
 
 iOS 和 Linux 在第一阶段保持可构建、协议兼容，不作为新功能重点。这样可以先把用户实际使用的 Mac + Android 路径做到最好。
 
@@ -81,8 +80,8 @@ iOS 和 Linux 在第一阶段保持可构建、协议兼容，不作为新功能
 
 - macOS Sender：`WirelessScreen` /
   `io.github.mofu2003.wirelessscreen.mac`
-- macOS Receiver：`WirelessScreenReceiver` /
-  `io.github.mofu2003.wirelessscreen.mac.receiver`
+- macOS 接收投屏已并入 `WirelessScreen` /
+  `io.github.mofu2003.wirelessscreen.mac`
 - Android：显示名“无线副屏” /
   `io.github.mofu2003.wirelessscreen`
 - 已添加 `NOTICE`、`MODIFICATIONS.md` 和独立 README。

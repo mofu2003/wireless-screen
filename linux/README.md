@@ -288,12 +288,20 @@ the tarball's `./install.sh` (into `~/.local/bin`), log out and in, and check
 
 ### GNOME
 
-GNOME 50 or newer (Mutter 50); verified on a headless Mutter in CI, so please
-report whether it holds on your desktop. `od-sender` uses Mutter's own
-screen-cast and remote-desktop interfaces, so there is no sharing dialog. To
-set the scale and position it applies a temporary display configuration that
-keeps all your other monitors exactly as they are, and GNOME restores your
-layout when the virtual display goes away. Not available from a Flatpak.
+GNOME 50 or newer (Mutter 50) for the extension mode; verified on a headless
+Mutter in CI, so please report whether it holds on your desktop. `od-sender`
+uses Mutter's own screen-cast and remote-desktop interfaces, so there is no
+sharing dialog. To set the scale and position it applies a temporary display
+configuration that keeps all your other monitors exactly as they are, and
+GNOME restores your layout when the virtual display goes away. Not available
+from a Flatpak.
+
+To mirror an existing GNOME display without creating a virtual one, use
+`--mode mirror`. With no `--output`, the primary monitor is mirrored; with
+`--output <connector>`, that monitor is recorded through Mutter's
+`RecordMonitor` API. `wireless-screen-sender doctor --mode mirror` lists the
+connectors. This path does not change the monitor layout and stops only the
+screen-cast when the sender exits.
 
 ### Hyprland permissions
 

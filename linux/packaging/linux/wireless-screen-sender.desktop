@@ -2,9 +2,9 @@
 Type=Application
 Name=WirelessScreen Sender
 Name[zh_CN]=无线副屏发送端
-Comment=Extend or mirror this Linux desktop to a Mac or Android device
-Comment[zh_CN]=将这台 Linux 桌面扩展或镜像到 Mac、Android 设备
-Exec=/usr/bin/wireless-screen-sender run
+Comment=Mirror this Linux desktop to a Mac or Android device
+Comment[zh_CN]=将这台 Linux 桌面镜像到 Mac、Android 设备
+Exec=/usr/bin/wireless-screen-sender run --mode mirror
 Icon=wireless-screen-sender
 Terminal=true
 Categories=Utility;

@@ -1,10 +1,9 @@
-// The receiver (issues #82/#17): this Mac listens exactly like the iPhone
-// does — Bonjour-advertised TCP listener, hello with its own panel size — and
-// renders the incoming stream, so a spare Mac becomes a display for another
-// Mac. The pipeline is the shared StreamReceiver core; this file is only the
-// AppKit shell around it: lifecycle, the video window, cursor drawing, and
-// keeping the machine awake while it serves as a screen. It ships as its own
-// app (WirelessScreenMacReceiver target, macOS 12+) so old Macs can be displays.
+// Receiver mode: this Mac listens exactly like the iPhone does —
+// Bonjour-advertised TCP listener, hello with its own panel size — and renders
+// the incoming stream. The pipeline is the shared StreamReceiver core; this
+// file is only the AppKit shell around it: lifecycle, the video window, cursor
+// drawing, and keeping the machine awake while it serves as a screen. It is
+// compiled into the same WirelessScreen app as sending and mirroring.
 //
 // Display-only for now: the receiving Mac's keyboard/trackpad are not
 // forwarded to the sender (KVM-style input is a follow-up).

@@ -60,6 +60,11 @@ pub fn doctor(req: &Request, config_path: Option<&Path>) -> bool {
             println!("  => gnome (Mutter ScreenCast/RemoteDesktop over D-Bus)");
             true
         }
+        Decision::GnomeMirror { connector } => {
+            let target = connector.as_deref().unwrap_or("primary monitor");
+            println!("  => gnome mirror ({target}; Mutter RecordMonitor over D-Bus)");
+            true
+        }
         Decision::Adopt { output } => {
             println!("  => adopt output {output}");
             true

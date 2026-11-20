@@ -5,8 +5,8 @@ Recording and Accessibility grants with the bundle identifier and signing
 requirement; changing either creates stale or duplicate permission entries.
 
 - Sender Debug bundle ID: `io.github.mofu2003.wirelessscreen.mac.debug`
-- Receiver Debug bundle ID:
-  `io.github.mofu2003.wirelessscreen.mac.receiver.debug`
+- The standalone receiver target has been retired. Receiver mode runs inside
+  the same Debug app and uses the sender's bundle ID.
 - Keep Debug builds separate from the release bundle IDs.
 - Build the sender into `build/Build/Products/Debug/WirelessScreen Dev.app` and
   launch it with `./run.sh`. The script normalizes an ad hoc build's designated
@@ -16,11 +16,10 @@ requirement; changing either creates stale or duplicate permission entries.
   `tccutil reset ScreenCapture io.github.mofu2003.wirelessscreen.mac.debug`, launch the
   unchanged app, use its Grant button, and restart it once.
 
-The Intel receiver test host is available as `ssh imac`. Deploy the x86_64
-Debug receiver to `~/Applications/WirelessScreenReceiver Dev.app`; do not replace
-the release receiver app. A windowed receiver is sufficient for protocol,
-encode, and decode validation. Use its fullscreen video window for end-to-end
-latency, presentation, scaling, and visual-quality measurements.
+The Intel receiver test host is available as `ssh imac`. Deploy the same
+x86_64 Debug app to `~/Applications/WirelessScreen Dev.app`, switch it to
+“Receive”, and use its fullscreen video window for end-to-end latency,
+presentation, scaling, and visual-quality measurements.
 
 # Linux development (`linux/` workspace)
 

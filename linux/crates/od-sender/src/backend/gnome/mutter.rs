@@ -99,6 +99,8 @@ pub struct Placement {
     pub x: i32,
     pub y: i32,
     pub scale: f64,
+    /// Mutter transform: 0 normal, 1 left, 2 upside-down, 3 right.
+    pub transform: u32,
     /// DisplayConfig `layout-mode` 1 (logical pixels, the default) rather
     /// than 2 (physical pixels).
     pub logical_layout: bool,
@@ -119,11 +121,30 @@ impl Placement {
             (w, h)
         }
     }
+
+    /// Physical pixels in the monitor stream, upright after rotation.
+    /// Mutter's `RecordMonitor` input coordinates are in this space.
+    pub fn stream_size(&self) -> (u32, u32) {
+        if self.transform % 2 == 1 {
+            (self.height, self.width)
+        } else {
+            (self.width, self.height)
+        }
+    }
 }
 
 impl State {
     pub fn connectors(&self) -> Vec<String> {
         self.1.iter().map(|m| m.0.0.clone()).collect()
+    }
+
+    pub fn primary_connector(&self) -> Option<String> {
+        self.2
+            .iter()
+            .find(|l| l.4)
+            .and_then(|l| l.5.first())
+            .map(|m| m.0.clone())
+            .or_else(|| self.connectors().into_iter().next())
     }
 
     pub fn placement(&self, connector: &str) -> Option<Placement> {
@@ -141,6 +162,7 @@ impl State {
             x: l.map_or(0, |l| l.0),
             y: l.map_or(0, |l| l.1),
             scale: l.map_or(1.0, |l| l.2),
+            transform: l.map_or(0, |l| l.3),
             logical_layout: super::layout::logical_layout(self),
         })
     }
@@ -243,15 +265,55 @@ pub struct Request {
     pub cursor: CursorMode,
 }
 
+fn create_remote_desktop_session(conn: &Connection) -> Result<OwnedObjectPath> {
+    let reply = conn
+        .call_method(Some(RD), RD_PATH, Some(RD), "CreateSession", &())
+        .context("RemoteDesktop.CreateSession")?;
+    Ok(reply.body().deserialize()?)
+}
+
+fn create_linked_screen_cast_session(
+    conn: &Connection,
+    rd: &OwnedObjectPath,
+) -> Result<OwnedObjectPath> {
+    let rd_id: String = get_property(
+        conn,
+        RD,
+        rd.as_str(),
+        "org.gnome.Mutter.RemoteDesktop.Session",
+        "SessionId",
+    )?;
+    let opts: HashMap<&str, Value> =
+        HashMap::from([("remote-desktop-session-id", Value::from(rd_id.as_str()))]);
+    let reply = conn
+        .call_method(Some(SC), SC_PATH, Some(SC), "CreateSession", &(opts,))
+        .context("ScreenCast.CreateSession")?;
+    Ok(reply.body().deserialize()?)
+}
+
+fn pipewire_node(conn: &Connection, stream: &OwnedObjectPath, rd: &OwnedObjectPath) -> Result<u32> {
+    // PipeWireStreamAdded arrives after Start; listen before starting.
+    let rule = zbus::MatchRule::builder()
+        .msg_type(zbus::message::Type::Signal)
+        .sender(SC)?
+        .interface("org.gnome.Mutter.ScreenCast.Stream")?
+        .member("PipeWireStreamAdded")?
+        .path(stream.as_str())?
+        .build();
+    async_io::block_on(start_and_wait_for_node(
+        conn.inner(),
+        rule,
+        rd.as_str(),
+        NODE_WITHIN,
+    ))
+}
+
 impl VirtualMonitor {
     pub fn create(req: &Request) -> Result<Self> {
         let conn = Connection::session().context("connecting to the session bus")?;
         let before = display_state(&conn)?.connectors();
 
-        let reply = conn
-            .call_method(Some(RD), RD_PATH, Some(RD), "CreateSession", &())
-            .context("RemoteDesktop.CreateSession")?;
-        let rd: OwnedObjectPath = reply.body().deserialize()?;
+        let rd = create_remote_desktop_session(&conn)?;
         // The session exists from here on: build `Self` now so every early
         // return below stops it (Drop), instead of leaving a virtual monitor
         // on the desktop per failed attempt. `stream`, `node` and
@@ -269,25 +331,13 @@ impl VirtualMonitor {
                 x: 0,
                 y: 0,
                 scale: 1.0,
+                transform: 0,
                 logical_layout: true,
             },
             stopped: false,
         };
         let conn = vm.conn.clone();
-        let rd_id: String = get_property(
-            &conn,
-            RD,
-            vm.rd.as_str(),
-            "org.gnome.Mutter.RemoteDesktop.Session",
-            "SessionId",
-        )?;
-
-        let mut opts: HashMap<&str, Value> = HashMap::new();
-        opts.insert("remote-desktop-session-id", Value::from(rd_id.as_str()));
-        let reply = conn
-            .call_method(Some(SC), SC_PATH, Some(SC), "CreateSession", &(opts,))
-            .context("ScreenCast.CreateSession")?;
-        let sc: OwnedObjectPath = reply.body().deserialize()?;
+        let sc = create_linked_screen_cast_session(&conn, &vm.rd)?;
 
         let mode: HashMap<&str, Value> = HashMap::from([
             ("size", Value::from((req.width, req.height))),
@@ -311,20 +361,7 @@ impl VirtualMonitor {
             .context("ScreenCast.Session.RecordVirtual")?;
         vm.stream = reply.body().deserialize()?;
 
-        // PipeWireStreamAdded arrives after Start; listen before starting.
-        let rule = zbus::MatchRule::builder()
-            .msg_type(zbus::message::Type::Signal)
-            .sender(SC)?
-            .interface("org.gnome.Mutter.ScreenCast.Stream")?
-            .member("PipeWireStreamAdded")?
-            .path(vm.stream.as_str())?
-            .build();
-        vm.node = async_io::block_on(start_and_wait_for_node(
-            conn.inner(),
-            rule,
-            vm.rd.as_str(),
-            NODE_WITHIN,
-        ))?;
+        vm.node = pipewire_node(&conn, &vm.stream, &vm.rd)?;
 
         // The new connector is ours; Mutter names virtual ones Meta-<n>.
         let mut placement = None;
@@ -414,7 +451,103 @@ impl Drop for VirtualMonitor {
     }
 }
 
-/// Pointer input into one virtual monitor's stream.
+/// One existing monitor recorded through `RecordMonitor`. Stopping the
+/// RemoteDesktop session ends the screen-cast but never removes the monitor.
+pub struct MonitorStream {
+    conn: Connection,
+    rd: OwnedObjectPath,
+    pub stream: OwnedObjectPath,
+    pub node: u32,
+    pub placement: Placement,
+    stopped: bool,
+}
+
+impl MonitorStream {
+    pub fn create(connector: Option<&str>, cursor: CursorMode) -> Result<Self> {
+        let conn = Connection::session().context("connecting to the session bus")?;
+        let state = display_state(&conn)?;
+        let connector = connector
+            .map(ToOwned::to_owned)
+            .or_else(|| state.primary_connector())
+            .context("GNOME reports no monitor to mirror")?;
+        let placement = state.placement(&connector).with_context(|| {
+            format!(
+                "unknown GNOME monitor {connector:?}; available: {}",
+                state.connectors().join(", ")
+            )
+        })?;
+
+        let rd = create_remote_desktop_session(&conn)?;
+        let mut monitor = Self {
+            stream: rd.clone(),
+            rd,
+            node: 0,
+            placement,
+            conn,
+            stopped: false,
+        };
+        let conn = monitor.conn.clone();
+        let sc = create_linked_screen_cast_session(&conn, &monitor.rd)?;
+        let props: HashMap<&str, Value> = HashMap::from([
+            ("cursor-mode", Value::from(cursor as u32)),
+            ("is-recording", Value::from(false)),
+        ]);
+        let reply = conn
+            .call_method(
+                Some(SC),
+                sc.as_str(),
+                Some("org.gnome.Mutter.ScreenCast.Session"),
+                "RecordMonitor",
+                &(monitor.placement.connector.as_str(), props),
+            )
+            .with_context(|| {
+                format!(
+                    "ScreenCast.Session.RecordMonitor({})",
+                    monitor.placement.connector
+                )
+            })?;
+        monitor.stream = reply.body().deserialize()?;
+        monitor.node = pipewire_node(&conn, &monitor.stream, &monitor.rd)?;
+        debug!(
+            "mutter monitor {:?} node {}",
+            monitor.placement, monitor.node
+        );
+        Ok(monitor)
+    }
+
+    pub fn input(&self) -> InputHandle {
+        InputHandle {
+            conn: self.conn.clone(),
+            rd: self.rd.clone(),
+            stream: self.stream.clone(),
+        }
+    }
+
+    pub fn stop(&mut self) -> Result<()> {
+        if self.stopped {
+            return Ok(());
+        }
+        self.stopped = true;
+        self.conn
+            .call_method(
+                Some(RD),
+                self.rd.as_str(),
+                Some("org.gnome.Mutter.RemoteDesktop.Session"),
+                "Stop",
+                &(),
+            )
+            .context("RemoteDesktop.Session.Stop")?;
+        Ok(())
+    }
+}
+
+impl Drop for MonitorStream {
+    fn drop(&mut self) {
+        let _ = self.stop();
+    }
+}
+
+/// Pointer input into one Mutter stream.
 #[derive(Clone)]
 pub struct InputHandle {
     conn: Connection,
@@ -530,6 +663,7 @@ mod tests {
                 x: 1280,
                 y: 0,
                 scale: 2.0,
+                transform: 0,
                 logical_layout: true,
             })
         );
@@ -558,6 +692,14 @@ mod tests {
             s.placement("Meta-0").unwrap().layout_size(),
             (1280.0, 800.0)
         );
+    }
+
+    #[test]
+    fn monitor_stream_size_is_upright_physical_pixels() {
+        let mut p = state().placement("Meta-1").unwrap();
+        assert_eq!(p.stream_size(), (1170, 2532));
+        p.transform = 1;
+        assert_eq!(p.stream_size(), (2532, 1170));
     }
 
     #[test]

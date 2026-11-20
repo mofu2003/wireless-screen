@@ -19,10 +19,6 @@ schemes:
     build:
       targets:
         WirelessScreeniOS: all
-  WirelessScreenMacReceiver:
-    build:
-      targets:
-        WirelessScreenMacReceiver: all
 # DEVELOPMENT_TEAM comes from the environment (see generate.sh / .env) so no
 # personal team ID lives in the repo. Unset = unsigned, fine for CI.
 settings:
@@ -48,6 +44,7 @@ targets:
       - MacReceiver/MacReceiver.swift
       - MacReceiver/PowerControl.swift
       - MacReceiver/FullscreenPreference.swift
+      - MacReceiver/ReceiverPanel.swift
     info:
       path: Mac/Info.plist
       properties:
@@ -59,6 +56,7 @@ targets:
         LSUIElement: true
         NSLocalNetworkUsageDescription: 无线副屏通过本地网络连接你的平板、手机或另一台 Mac。
         NSBonjourServices: ["_opensidecar._tcp", "_od-sender._tcp"]
+        NSAppleEventsUsageDescription: 无线副屏在已连接的发送设备请求时会关闭这台 Mac。
         LSApplicationCategoryType: public.app-category.utilities
         NSHumanReadableCopyright: "Copyright © 2026 mofu2003. 基于 OpenDisplay，按 GPL-3.0 分发。"
         SUFeedURL: https://raw.githubusercontent.com/mofu2003/wireless-screen/refs/heads/main/public/appcast.xml
@@ -89,57 +87,6 @@ targets:
           BUNDLE_DISPLAY_NAME: 无线副屏开发版
           # Colour-inverted icon so the dev build is obvious in the Dock,
           # cmd-tab and permission lists.
-          ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-Dev
-  # The standalone receiver app (issues #82/#17/#241): a spare Mac as a
-  # display. Deliberately its own bundle with a much lower deployment target
-  # than the sender, which is pinned to 14 by its capture stack. Everything
-  # under Shared/ and the files listed from Mac/ must therefore compile at
-  # this floor; keep this the oldest macOS the receiver path supports.
-  WirelessScreenMacReceiver:
-    type: application
-    platform: macOS
-    deploymentTarget: "12.0"
-    dependencies:
-      - package: Sparkle
-    sources:
-      - MacReceiver
-      - Shared
-      - Mac/Log.swift
-      - Mac/LogPolicies.swift
-      - Mac/CheckForUpdatesView.swift
-    info:
-      path: MacReceiver/Info.plist
-      properties:
-        NSPrincipalClass: NSApplication
-        CFBundleDisplayName: $(BUNDLE_DISPLAY_NAME)
-        CFBundleName: $(BUNDLE_DISPLAY_NAME)
-        CFBundleShortVersionString: "$(MARKETING_VERSION)"
-        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
-        NSLocalNetworkUsageDescription: 无线副屏接收端通过本地网络被发现，让另一台 Mac 把画面发送到这台 Mac。
-        NSBonjourServices: ["_opensidecar._tcp"]
-        NSAppleEventsUsageDescription: 无线副屏接收端会在已连接的 Mac 请求时关闭这台 Mac。
-        LSApplicationCategoryType: public.app-category.utilities
-        NSHumanReadableCopyright: "Copyright © 2026 mofu2003. 基于 OpenDisplay，按 GPL-3.0 分发。"
-        SUFeedURL: https://raw.githubusercontent.com/mofu2003/wireless-screen/refs/heads/main/public/appcast-receiver.xml
-        SUPublicEDKey: IY7hnXOd1liMKCB+2PuOkh+4K+39Fl5fX5fAItfTCi0=
-        SUEnableAutomaticChecks: true
-        SUAutomaticallyUpdate: true
-        SUScheduledCheckInterval: 21600
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: io.github.mofu2003.wirelessscreen.mac.receiver
-        PRODUCT_NAME: WirelessScreenReceiver
-        BUNDLE_DISPLAY_NAME: 无线副屏接收端
-        # Log.swift's file locking helpers live in the C bridging header.
-        SWIFT_OBJC_BRIDGING_HEADER: Mac/OpenSidecarMac-Bridging-Header.h
-        ENABLE_HARDENED_RUNTIME: YES
-        CODE_SIGN_ENTITLEMENTS: MacReceiver/OpenSidecarMacReceiver.entitlements
-        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-      configs:
-        Debug:
-          PRODUCT_BUNDLE_IDENTIFIER: io.github.mofu2003.wirelessscreen.mac.receiver.debug
-          PRODUCT_NAME: WirelessScreenReceiver Dev
-          BUNDLE_DISPLAY_NAME: 无线副屏接收端开发版
           ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-Dev
   WirelessScreenMacTests:
     type: bundle.unit-test

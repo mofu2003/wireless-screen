@@ -6,13 +6,12 @@
 ## 独立产品基线
 
 - 产品显示名改为“无线副屏”，构建名使用 ASCII 的 `WirelessScreen`。
-- macOS Bundle ID 改为 `io.github.mofu2003.wirelessscreen.mac` 和
-  `io.github.mofu2003.wirelessscreen.mac.receiver`。
+- macOS 发送、镜像和接收模式统一使用一个 App，Bundle ID 为
+  `io.github.mofu2003.wirelessscreen.mac`；独立 Receiver 构建已停用。
 - Android applicationId 改为 `io.github.mofu2003.wirelessscreen`。
 - 产品更新地址改为 `mofu2003/wireless-screen`，不再访问原产品的更新清单和
   Release 资产。
-- 自有签名与更新链路完成前，暂时移除 macOS Sparkle 入口并关闭 Android
-  联网更新检查。
+- 接入自有 macOS Sparkle 与 Android APK 自动更新链路。
 - Android Open Accessory 的 manufacturer/model 改为
   `WirelessScreen` / `WirelessScreen Receiver`，两端配对修改。
 - 替换应用图标、启动页图示和主要品牌文案。
@@ -29,7 +28,7 @@
 - 增加 Android 悬浮键盘输入，支持中文输入法提交文本和常用控制键。
 - 增加 macOS 帧率选择，并优化 Android 60 fps 接收路径。
 - 修复 Android 查找 Mac 列表的蓝底蓝字可读性问题。
-- 新增 Linux Wayland 发送端，支持扩展屏和镜像现有输出，可投送到
-  macOS 或 Android 接收端。
+- 新增 Linux Wayland 发送端，支持扩展屏、GNOME `RecordMonitor` 镜像和
+  其他现有输出镜像，可投送到统一的 macOS App 或 Android 接收端。
 
-修改日期：2026-11-19。
+修改日期：2026-11-20。

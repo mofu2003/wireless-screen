@@ -1,8 +1,9 @@
 # 无线副屏 Linux 发送端
 
-Linux 发送端把当前 Wayland 桌面扩展或镜像到运行“无线副屏接收端”的 Mac，
-或运行无线副屏接收功能的 Android 设备。它复用现有 OpenDisplay v3 协议，
-不需要云端账号或中转服务器。
+Linux 发送端把当前 Wayland 桌面扩展或镜像到运行“无线副屏”的 Mac，或运行
+无线副屏接收功能的 Android 设备。Mac 只有一个 App，它同时负责发送和接收，
+不再需要单独安装接收端。发送端复用现有 OpenDisplay v3 协议，不需要云端账号
+或中转服务器。
 
 ## 运行条件
 
@@ -22,14 +23,14 @@ Linux 发送端把当前 Wayland 桌面扩展或镜像到运行“无线副屏�
   合成器，可用现有显示器镜像：
 
   ```sh
-  wireless-screen-sender run --output <输出名称>
+  wireless-screen-sender run --mode mirror --output <输出名称>
   ```
 
 - RK3576 也可以作为发送端，但板端必须运行带上述 Wayland 合成器的图形会话；
   仅有 framebuffer、Weston kiosk 或 X11 的镜像不能直接使用。
 
-Mac 接收端是 `WirelessScreenReceiver`，Android 使用无线副屏 APK。两者可从
-[最新 Release](https://github.com/mofu2003/wireless-screen/releases/latest)
+Mac 使用“无线副屏”主 App 的“接收投屏”模式，Android 使用无线副屏 APK。
+两者可从[最新 Release](https://github.com/mofu2003/wireless-screen/releases/latest)
 下载。
 
 ## 安装
@@ -45,7 +46,9 @@ cd WirelessScreenSender-<version>-linux-$(uname -m)
 ```
 
 安装到当前用户时，主程序位于 `~/.local/bin`，同时安装桌面入口、
-256×256 图标和 `systemd --user` 服务。安装到系统目录：
+256×256 图标和 `systemd --user` 服务。应用菜单里的“无线副屏发送端”
+会直接镜像当前 GNOME 主显示器；扩展屏仍可用命令行 `run` 启动。
+安装到系统目录：
 
 ```sh
 sudo ./install.sh --system
@@ -79,16 +82,25 @@ wireless-screen-sender run
   wireless-screen-sender run --to 192.168.1.50:9000
   ```
 
-- 默认模式在桌面右侧创建扩展屏。用 `--position auto-left`、`auto-up`
-  或 `x,y` 调整位置。
-- 镜像现有桌面而不是扩展：
+- 默认 `--mode extend` 在桌面右侧创建扩展屏。用 `--position auto-left`、
+  `auto-up` 或 `x,y` 调整位置。
+- 在 GNOME 上镜像当前桌面：
 
   ```sh
-  wireless-screen-sender run --output DP-1
+  wireless-screen-sender run --mode mirror
   ```
 
-  `doctor` 会列出当前 Wayland 输出名称。`--output` 不创建、不删除显示器，
-  接收端使用该输出当前的分辨率。
+  默认镜像 GNOME 主显示器。指定其他显示器：
+
+  ```sh
+  wireless-screen-sender run --mode mirror --output eDP-1
+  ```
+
+  `doctor` 会列出 Mutter 当前识别的显示器名称。GNOME 镜像使用
+  `RecordMonitor`，不创建、不删除显示器；触控会映射到被镜像屏幕。
+- 在 Hyprland、Sway、KDE 或其他支持现有输出采集的 Wayland 合成器上，
+  `--mode mirror --output` 会走 adopt 模式；也可以继续只写
+  `--output <名称>`，保持旧用法。
 - 限制帧率或码率以降低 CPU 和 Wi-Fi 占用：
 
   ```sh
@@ -171,8 +183,8 @@ KDE Plasma 6.7 及更旧版本的 KWin 只向已安装 desktop entry 对应的�
 - 不传输音频，不支持 USB 数据线传输。
 - 协议未加密，只应在可信局域网使用。
 - Linux 发送端已在 Sway 1.12 上通过到 macOS 接收端的真实端到端测试；
-  Hyprland、KDE、GNOME、RK3576 实机和实体 Android 平板仍需按实际设备
-  复测。
+  GNOME 镜像已在无头 Mutter 46 上以约 28 fps 投到统一 macOS App。
+  实体 GNOME 桌面、RK3576 实机和实体 Android 平板仍需按实际设备复测。
 
 ## 源码构建
 

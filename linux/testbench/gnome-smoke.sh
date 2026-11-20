@@ -21,11 +21,13 @@
 #   for f in *.pkg.tar.*[!g]; do pacman-key --verify "$f.sig" "$f" && bsdtar -xf "$f" -C "$MUTTER_ROOT"; done
 #
 # 1. `od-sender doctor` with XDG_CURRENT_DESKTOP=GNOME picks the gnome backend.
-# 2. `dev smoke --backend gnome`: a 1170x2532 virtual monitor (no dialog),
+# 2. `dev smoke --mode mirror`: record the existing headless monitor through
+#    RecordMonitor, with no virtual monitor added or removed.
+# 3. `dev smoke --backend gnome`: a 1170x2532 virtual monitor (no dialog),
 #    PipeWire frames, x264, pointer input; afterwards the monitor is gone.
-# 3. `--scale 3 --position auto-left`: snapped to 2 (what Mutter offers for
+# 4. `--scale 3 --position auto-left`: snapped to 2 (what Mutter offers for
 #    the mode) and placed left, through a temporary DisplayConfig change.
-# 4. Crash: `kill -9` a running sender; Mutter removes its monitor itself.
+# 5. Crash: `kill -9` a running sender; Mutter removes its monitor itself.
 set -euo pipefail
 
 if [ -z "${OD_GNOME_INNER:-}" ]; then
@@ -80,7 +82,11 @@ trap cleanup EXIT
 
 pipewire >"$logs/pipewire.log" 2>&1 &
 for _ in $(seq 50); do [ -S "$XDG_RUNTIME_DIR/pipewire-0" ] && break; sleep 0.1; done
-wireplumber --profile policy >"$logs/wireplumber.log" 2>&1 &
+if wireplumber --help 2>&1 | grep -q -- "--profile"; then
+  wireplumber --profile policy >"$logs/wireplumber.log" 2>&1 &
+else
+  wireplumber >"$logs/wireplumber.log" 2>&1 &
+fi
 # shellcheck disable=SC2086
 "$OD_MUTTER" $OD_MUTTER_ARGS --headless --wayland --no-x11 --wayland-display=wayland-od \
   --virtual-monitor 1280x800 >"$logs/mutter.log" 2>&1 &
@@ -98,6 +104,19 @@ grep -q "=> gnome" "$logs/doctor.txt" || fail "doctor did not pick gnome (see do
 grep -q "GNOME Mutter (ScreenCast API" "$logs/doctor.txt" || fail "doctor could not start the gnome backend"
 
 echo "2. dev smoke"
+mirror_before=$(monitors)
+"$OD_SENDER" doctor --backend gnome --mode mirror >"$logs/doctor-mirror.txt" 2>&1 \
+  || fail "mirror doctor failed (see doctor-mirror.txt)"
+grep -q "=> gnome mirror" "$logs/doctor-mirror.txt" || fail "doctor did not select GNOME mirror"
+connector="$(sed -n 's/.*; monitors: *\([^,]*\).*/\1/p' "$logs/doctor-mirror.txt" | head -1)"
+[ -n "$connector" ] || fail "doctor did not list a GNOME monitor to mirror"
+RUST_LOG=info "$OD_SENDER" dev smoke --backend gnome --mode mirror --output "$connector" \
+  --frames 10 --timeout 30 >"$logs/mirror.log" 2>&1 || fail "mirror smoke (see mirror.log)"
+grep -q "smoke ok: 10 frames captured" "$logs/mirror.log" || fail "mirror did not capture 10 frames"
+grep -q "mirroring display" "$logs/mirror.log" || fail "mirror stream was not created"
+[ "$(monitors)" -eq "$mirror_before" ] || fail "mirror mode created a virtual monitor"
+
+echo "3. dev smoke"
 before=$(removed)
 RUST_LOG=info "$OD_SENDER" dev smoke --backend gnome --size 1170x2532 --frames 30 --timeout 30 \
   >"$logs/smoke.log" 2>&1 || fail "smoke (see smoke.log)"
@@ -105,7 +124,7 @@ grep -q "smoke ok: 30 frames captured" "$logs/smoke.log" || fail "smoke did not 
 grep -q "1170x2532" "$logs/smoke.log" || fail "virtual monitor not 1170x2532"
 [ "$(removed)" -gt "$before" ] || fail "virtual monitor not removed after smoke"
 
-echo "3. scale and position"
+echo "4. scale and position"
 before=$(removed)
 RUST_LOG=info "$OD_SENDER" dev smoke --backend gnome --size 1170x2532 --scale 3 --position auto-left \
   --frames 5 --timeout 30 >"$logs/scale.log" 2>&1 || fail "scale smoke (see scale.log)"
@@ -115,7 +134,7 @@ grep -q "using 2" "$logs/scale.log" || fail "scale 3 was not snapped to 2"
 grep -q "od-smoke = 1170x2532 @60 scale 2 at 0,0" "$logs/scale.log" || fail "not scale 2 at 0,0 (see scale.log)"
 [ "$(removed)" -gt "$before" ] || fail "virtual monitor not removed after scale smoke"
 
-echo "4. kill -9"
+echo "5. kill -9"
 before=$(removed)
 "$OD_SENDER" dev smoke --backend gnome --size 800x600 --frames 100000000 --timeout 120 \
   >"$logs/crash.log" 2>&1 &

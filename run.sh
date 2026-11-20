@@ -1,7 +1,6 @@
 #!/bin/zsh
-# Start the 无线副屏 sending app. The receiver app must be running (it listens on
-# :9000); USB connectivity goes through macOS's built-in usbmuxd — no tunnel
-# tool needed. The Mac app retries until the device shows up.
+# Start the 无线副屏 development app. The same app can extend, mirror or enter
+# receiver mode; USB connectivity goes through macOS's built-in usbmuxd.
 set -e
 cd "$(dirname "$0")"
 

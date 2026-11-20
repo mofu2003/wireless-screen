@@ -21,6 +21,7 @@ enum AppPresentation: String, CaseIterable {
 struct WirelessScreenMacApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var controller = SenderController.shared
+    @ObservedObject private var receiver = ReceiverController.shared
 
     var body: some Scene {
         MenuBarExtra(isInserted: Binding(
@@ -29,7 +30,7 @@ struct WirelessScreenMacApp: App {
         )) {
             ContentView(controller: controller, updater: appDelegate.updater)
         } label: {
-            Image(systemName: controller.running
+            Image(systemName: controller.running || receiver.active
                   ? "rectangle.on.rectangle.fill" : "rectangle.on.rectangle")
         }
         .menuBarExtraStyle(.window)
@@ -219,8 +220,12 @@ final class SenderController: ObservableObject {
     // (debugging escape hatch, e.g. an iproxy or SSH tunnel).
     @Published var host = UserDefaults.standard.string(forKey: "host") ?? "127.0.0.1"
     @Published var port = UserDefaults.standard.string(forKey: "port") ?? "9000"
-    // `-mode mirror` / `-mode extend` launch argument also works.
-    @Published var mode = CaptureMode(rawValue: UserDefaults.standard.string(forKey: "mode") ?? "") ?? .extend
+    @Published var mode = CaptureMode(rawValue: UserDefaults.standard.string(forKey: "mode") ?? "") ?? .extend {
+        didSet {
+            UserDefaults.standard.set(mode.rawValue, forKey: "mode")
+            if running { restartAll() }
+        }
+    }
     @Published var quality = StreamQuality(rawValue: UserDefaults.standard.string(forKey: "quality") ?? "") ?? .best {
         didSet { UserDefaults.standard.set(quality.rawValue, forKey: "quality") }
     }
@@ -1142,10 +1147,38 @@ final class PermissionMonitor: ObservableObject {
     }
 }
 
+private enum PanelMode: String, CaseIterable, Identifiable {
+    case extend
+    case mirror
+    case receive
+
+    var id: Self { self }
+
+    var label: String {
+        switch self {
+        case .extend: return String(localized: "Extend")
+        case .mirror: return String(localized: "Mirror")
+        case .receive: return String(localized: "Receive")
+        }
+    }
+
+    var explanation: String {
+        switch self {
+        case .extend:
+            return String(localized: "Create an extra display for this Mac and send it to a device.")
+        case .mirror:
+            return String(localized: "Send this Mac's screen without creating another display.")
+        case .receive:
+            return String(localized: "Use this Mac as the screen for an Android, Linux, or Mac sender.")
+        }
+    }
+}
+
 struct ContentView: View {
     @ObservedObject var controller: SenderController
     @ObservedObject private var displayReceiver = ReceiverController.shared
     @StateObject private var permissions = PermissionMonitor()
+    @State private var panelMode: PanelMode = .extend
     let updater: SPUStandardUpdaterController?
 
     var body: some View {
@@ -1158,12 +1191,12 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(ProductIdentity.name)
                         .font(.title3.bold())
-                    Text("把平板、手机和 Mac 变成 Mac 的扩展屏")
+                    Text("扩展、镜像和接收投屏，都在一个 App 里")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                if controller.running {
+                if panelMode != .receive && controller.running {
                     Button("Disconnect All") { controller.disconnectAll() }
                         .controlSize(.large)
                 }
@@ -1174,6 +1207,22 @@ struct ContentView: View {
 
             // Settings
             Form {
+                Section("Screen mode") {
+                    Picker("Screen mode", selection: modeBinding) {
+                        ForEach(PanelMode.allCases) { mode in
+                            Text(mode.label).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+                    Text(panelMode.explanation)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if panelMode == .receive {
+                    ReceiverSections(controller: displayReceiver)
+                } else {
                 Section("Devices") {
                     if controller.deviceEntries.isEmpty {
                         Text("未发现设备。请通过 USB 连接，或在同一 WiFi 网络的设备上打开无线副屏。")
@@ -1209,34 +1258,6 @@ struct ContentView: View {
                         }
                     }
                 }
-
-                Section("Receive a screen") {
-                    Toggle("Use this Mac as a display", isOn: Binding(
-                        get: { displayReceiver.active },
-                        set: { on in
-                            UserDefaults.standard.set(on, forKey: "receiverEnabled")
-                            if on {
-                                displayReceiver.start()
-                                controller.dropSelfReceiver()
-                            } else {
-                                displayReceiver.stop()
-                            }
-                        }))
-                    if displayReceiver.active {
-                        Text(displayReceiver.connected
-                             ? "Connected — the video window opens automatically."
-                             : "Waiting for a device to connect…")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-
-                Picker("Mode", selection: $controller.mode) {
-                    Text("Extend").tag(CaptureMode.extend)
-                    Text("Mirror").tag(CaptureMode.mirror)
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: controller.mode) { controller.restartAll() }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Picker("Quality", selection: $controller.quality) {
@@ -1304,22 +1325,25 @@ struct ContentView: View {
                     .controlSize(.small)
                 }
                 .help("Opens System Settings → Displays, where you can position the extended displays relative to your Mac screen (Arrange…). Each device shows up as its own display, named after the device.")
+                }
 
                 Section("Permissions") {
-                    permissionRow(
-                        "Screen Recording",
-                        granted: permissions.screenRecording,
-                        help: "Required to capture the display.",
-                        anchor: "Privacy_ScreenCapture",
-                        request: { permissions.requestScreenRecording() }
-                    )
-                    permissionRow(
-                        "Accessibility",
-                        granted: permissions.accessibility,
-                        help: "Required for touch input from the device.",
-                        anchor: "Privacy_Accessibility",
-                        request: { permissions.requestAccessibility() }
-                    )
+                    if panelMode != .receive {
+                        permissionRow(
+                            "Screen Recording",
+                            granted: permissions.screenRecording,
+                            help: "Required to capture the display.",
+                            anchor: "Privacy_ScreenCapture",
+                            request: { permissions.requestScreenRecording() }
+                        )
+                        permissionRow(
+                            "Accessibility",
+                            granted: permissions.accessibility,
+                            help: "Required for touch input from the device.",
+                            anchor: "Privacy_Accessibility",
+                            request: { permissions.requestAccessibility() }
+                        )
+                    }
                     // macOS offers no API to query Local Network access, so
                     // infer from discovery: a blocked browse is a definite no,
                     // an empty one may just mean no receiver is open.
@@ -1329,7 +1353,7 @@ struct ContentView: View {
                         uncertain: controller.discovered.isEmpty && !controller.localNetworkDenied,
                         help: controller.localNetworkDenied
                             ? "此 Mac 未允许无线副屏访问本地网络，因此 WiFi 模式发现不到设备。请在“隐私与安全性 → 本地网络”中允许访问。"
-                            : "WiFi 模式需要此权限。如果设备列表为空，请在 Mac 和接收设备的“隐私与安全性 → 本地网络”中允许无线副屏访问，并保持接收端应用打开。",
+                            : "发送和接收投屏都需要本地网络权限。请让发送设备和这台 Mac 处在同一网络。",
                         anchor: "Privacy_LocalNetwork"
                     )
                 }
@@ -1344,7 +1368,7 @@ struct ContentView: View {
             // Status bar
             HStack(spacing: 8) {
                 Circle()
-                    .fill(controller.running ? .green : .secondary.opacity(0.5))
+                    .fill(statusActive ? .green : .secondary.opacity(0.5))
                     .frame(width: 9, height: 9)
                 Text(connectionSummary)
                     .font(.callout)
@@ -1366,9 +1390,52 @@ struct ContentView: View {
             .padding(.vertical, 10)
         }
         .frame(width: 440, height: 540)
+        .onAppear {
+            if displayReceiver.active {
+                panelMode = .receive
+            } else {
+                panelMode = controller.mode == .mirror ? .mirror : .extend
+            }
+        }
+        .onChange(of: displayReceiver.active) { _, active in
+            if active { panelMode = .receive }
+        }
+    }
+
+    private var modeBinding: Binding<PanelMode> {
+        Binding(get: { panelMode }, set: selectMode)
+    }
+
+    private func selectMode(_ mode: PanelMode) {
+        guard mode != panelMode else { return }
+        switch mode {
+        case .receive:
+            controller.disconnectAll()
+            UserDefaults.standard.set(true, forKey: "receiverEnabled")
+            if !displayReceiver.active {
+                displayReceiver.start()
+            }
+            controller.dropSelfReceiver()
+        case .extend, .mirror:
+            UserDefaults.standard.set(false, forKey: "receiverEnabled")
+            if displayReceiver.active {
+                displayReceiver.stop()
+            }
+            let captureMode: CaptureMode = mode == .mirror ? .mirror : .extend
+            if controller.mode != captureMode { controller.mode = captureMode }
+        }
+        panelMode = mode
+    }
+
+    private var statusActive: Bool {
+        panelMode == .receive ? displayReceiver.active : controller.running
     }
 
     private var connectionSummary: LocalizedStringKey {
+        if panelMode == .receive {
+            if displayReceiver.connected { return "Receiving a screen" }
+            return displayReceiver.active ? "Waiting for a sender…" : "Receiver off"
+        }
         guard controller.running else { return "Idle" }
         return controller.sessions.count == 1
             ? "1 device connected"

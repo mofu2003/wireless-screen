@@ -28,16 +28,6 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
-      - name: Build macOS receiver
-        run: |
-          xcodebuild build \
-            -project WirelessScreen.xcodeproj \
-            -scheme WirelessScreenMacReceiver \
-            -destination 'platform=macOS' \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
-
   android:
     runs-on: ubuntu-latest
     defaults:

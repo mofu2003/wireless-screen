@@ -163,7 +163,7 @@ pub fn target(hello: &Hello, opts: &RunOptions) -> Result<Target, PlanError> {
 }
 
 /// The stream to announce for the display as built. A backend that cannot
-/// size its output (adopt) streams the output as it is.
+/// size its output (adopt, GNOME mirror) streams the display as it is.
 fn stream_for(info: &DisplayInfo, target: &Target) -> StreamPlan {
     let s = target.plan.stream;
     if (info.width, info.height) == (target.spec.width, target.spec.height) {
@@ -852,21 +852,34 @@ async fn apply<S: AsyncWrite + Unpin>(
     let position = target.spec.position;
     let plan = build(backend, active, target, opts, cursor)?;
     if let (Some(a), Some(h)) = (active.as_ref(), sess.hello()) {
+        let action = if backend.caps().creates_outputs {
+            "Extending"
+        } else {
+            "Mirroring"
+        };
         info!(
             "{}",
-            extending_line(&receiver_label(h), a.display.info(), position)
+            extending_line(action, &receiver_label(h), a.display.info(), position)
         );
     }
     send_stream_config(stream, sess, &plan).await
 }
 
 /// The one plain-language line a user looks for after `run`.
-fn extending_line(receiver: &str, info: &DisplayInfo, position: Position) -> String {
+fn extending_line(action: &str, receiver: &str, info: &DisplayInfo, position: Position) -> String {
     let scale = info.scale.max(0.1);
     let (lw, lh) = (
         (info.width as f64 / scale).round(),
         (info.height as f64 / scale).round(),
     );
+    let scale = format!("{:.2}", info.scale);
+    let scale = scale.trim_end_matches('0').trim_end_matches('.');
+    if action == "Mirroring" {
+        return format!(
+            "Mirroring onto {receiver}: {lw}x{lh} logical at {scale}x ({}). Ctrl+C to stop.",
+            info.name
+        );
+    }
     let place = match position {
         Position::AutoRight => "right of your other displays".to_string(),
         Position::AutoLeft => "left of your other displays".to_string(),
@@ -874,10 +887,8 @@ fn extending_line(receiver: &str, info: &DisplayInfo, position: Position) -> Str
         Position::AutoDown => "below your other displays".to_string(),
         Position::At(x, y) => format!("at {x},{y}"),
     };
-    let scale = format!("{:.2}", info.scale);
-    let scale = scale.trim_end_matches('0').trim_end_matches('.');
     format!(
-        "Extending onto {receiver}: {lw}x{lh} logical at {scale}x ({}, {place}). Ctrl+C to stop.",
+        "{action} onto {receiver}: {lw}x{lh} logical at {scale}x ({}, {place}). Ctrl+C to stop.",
         info.name
     )
 }
@@ -2179,7 +2190,7 @@ mod tests {
             y: 0,
         };
         assert_eq!(
-            extending_line("iMac (1F04…)", &info, Position::AutoLeft),
+            extending_line("Extending", "iMac (1F04…)", &info, Position::AutoLeft),
             "Extending onto iMac (1F04…): 2048x1152 logical at 2x (od-1f046d, left of your other displays). Ctrl+C to stop."
         );
         let frac = DisplayInfo {
@@ -2189,8 +2200,12 @@ mod tests {
             ..info
         };
         assert!(
-            extending_line("Pixel", &frac, Position::At(10, 20))
+            extending_line("Extending", "Pixel", &frac, Position::At(10, 20))
                 .contains("909x405 logical at 2.67x (od-1f046d, at 10,20)")
+        );
+        assert_eq!(
+            extending_line("Mirroring", "Galaxy Tab", &frac, Position::AutoRight),
+            "Mirroring onto Galaxy Tab: 909x405 logical at 2.67x (od-1f046d). Ctrl+C to stop."
         );
     }
 

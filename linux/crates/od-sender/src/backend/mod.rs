@@ -21,6 +21,15 @@ use anyhow::{Result, bail};
 use clap::ValueEnum;
 use opendisplay_proto::control::{Pencil, Scroll, Touch};
 
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, ValueEnum)]
+pub enum SendMode {
+    /// Create a virtual display next to the existing desktop.
+    #[default]
+    Extend,
+    /// Mirror an existing display instead of creating one.
+    Mirror,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 pub enum BackendId {
     /// Hyprland >= 0.55: headless outputs over the IPC socket.

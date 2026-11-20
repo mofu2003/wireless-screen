@@ -83,9 +83,10 @@ echo "          ${desktop}"
 echo "          ${service}"
 echo
 echo "find receivers:  wireless-screen-sender list"
+echo "mirror desktop:  wireless-screen-sender run --mode mirror"
 echo "extend desktop:  wireless-screen-sender run"
 echo "pick a receiver: wireless-screen-sender run --to <name>"
-echo "mirror an output: wireless-screen-sender run --output <output-name>"
+echo "pick a monitor:  wireless-screen-sender run --mode mirror --output <output-name>"
 echo "start at login:  systemctl --user enable --now 'wireless-screen-sender@<receiver>.service'"
 
 missing="$(ldd "${here}/wireless-screen-sender" 2>/dev/null | awk '/not found/{print $1}' || true)"

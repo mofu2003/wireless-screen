@@ -20,9 +20,7 @@ enum Log {
     /// it's wanted. Living here also means Console.app lists it under Log
     /// Reports without us doing anything.
     ///
-    /// The folder is named after the app: the sender logs to `WirelessScreen`,
-    /// the receiver app (a separate bundle sharing this file) to
-    /// `WirelessScreenReceiver`, so running both on one Mac keeps two logs.
+    /// Sending, mirroring and receiving share this one app and one log.
     private static let directory: URL = {
         let library = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first
             ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library")

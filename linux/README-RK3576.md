@@ -28,16 +28,16 @@ Linux 的 GTK/GStreamer ABI 不兼容所有发行版，因此发布两个包：
 把对应架构的压缩包传到板子，例如：
 
 ```sh
-tar xf WirelessScreenReceiver-0.1.2-linux-aarch64.tar.gz
-cd WirelessScreenReceiver-0.1.2-linux-aarch64
+tar xf WirelessScreenReceiver-0.1.4-linux-aarch64.tar.gz
+cd WirelessScreenReceiver-0.1.4-linux-aarch64
 ./install.sh
 ```
 
 旧镜像使用兼容包：
 
 ```sh
-tar xf WirelessScreenReceiver-0.1.2-linux-aarch64-compat.tar.gz
-cd WirelessScreenReceiver-0.1.2-linux-aarch64-compat
+tar xf WirelessScreenReceiver-0.1.4-linux-aarch64-compat.tar.gz
+cd WirelessScreenReceiver-0.1.4-linux-aarch64-compat
 ./install.sh
 ```
 
@@ -191,18 +191,18 @@ sudo apt install build-essential pkg-config clang \
   libgstreamer-plugins-bad1.0-dev libwayland-dev
 curl https://sh.rustup.rs -sSf | sh
 cd linux
-OD_RECEIVER_VERSION=0.1.2 cargo build --locked --release -p od-receiver
-OD_RECEIVER_VERSION=0.1.2 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.2 "$(uname -m)" full
+OD_RECEIVER_VERSION=0.1.4 cargo build --locked --release -p od-receiver
+OD_RECEIVER_VERSION=0.1.4 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.4 "$(uname -m)" full
 ```
 
 Ubuntu 22.04 / Debian 12 兼容包不链接 GTK：
 
 ```sh
-OD_RECEIVER_VERSION=0.1.2 cargo build --locked --release -p od-receiver \
+OD_RECEIVER_VERSION=0.1.4 cargo build --locked --release -p od-receiver \
   --no-default-features --features gstreamer,logind
-OD_RECEIVER_VERSION=0.1.2 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.2 "$(uname -m)" compat
+OD_RECEIVER_VERSION=0.1.4 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.4 "$(uname -m)" compat
 ```
 
 ## 当前验证边界

@@ -1,8 +1,8 @@
 # 无线副屏
 
-“无线副屏”是一个本地优先、无需账号的 Mac 副屏工具。它把 Android 平板、
-手机、另一台 Mac 或 Linux 开发板变成 Mac 的扩展显示器，并支持 USB 与
-WiFi 连接。
+“无线副屏”是一个本地优先、无需账号的 Mac 副屏工具。同一个 Mac App 可以
+扩展或镜像本机屏幕，也可以接收 Android、Linux 或另一台 Mac 发来的投屏；
+支持 USB 与 WiFi 连接。
 
 本仓库是 [OpenDisplay](https://github.com/peetzweg/opendisplay) 的
 GPL-3.0 修改版本。当前版本已经更名、更换应用身份并开始独立维护；原始项目
@@ -12,8 +12,7 @@ GPL-3.0 修改版本。当前版本已经更名、更换应用身份并开始独
 
 当前发布范围：
 
-- macOS 发送端：`WirelessScreen`
-- macOS 接收端：`WirelessScreenReceiver`
+- macOS 全能端：`WirelessScreen`（发送扩展屏、发送镜像、接收投屏）
 - Android 接收端：`io.github.mofu2003.wirelessscreen`
 - Linux 接收端（aarch64/x86_64）：`wireless-screen-receiver`
 - Linux 发送端（aarch64/x86_64）：`wireless-screen-sender`
@@ -23,7 +22,7 @@ iOS 代码继续保留并可构建，但不是当前发布重点。RK3576 的安
 
 ## 已有能力
 
-- macOS 真实扩展屏与镜像模式。
+- macOS 真实扩展屏、镜像屏幕，以及在主 App 内接收投屏。
 - USB 与 WiFi 自动发现、手动地址连接。
 - Android 主动请求 Mac 回连，无需先操作 Mac。
 - 触控板式输入：单击、双击、三击、拖动、双指右键、双指滚动。
@@ -33,8 +32,9 @@ iOS 代码继续保留并可构建，但不是当前发布重点。RK3576 的安
 - macOS 与 Android 自动检查并安装已签名的 GitHub Release 更新。
 - Linux 完整包支持 GTK 4 全屏、触摸/鼠标输入回传；兼容包保证旧镜像
   可以显示。两者都支持 Rockchip MPP / mainline V4L2 硬件 H.264 解码优先。
-- Linux 发送端支持 Hyprland、Sway、KDE Plasma、GNOME 扩展屏，也可用
-  `--output` 镜像现有 Wayland 输出到 Mac 或 Android 接收端。
+- Linux 发送端支持 Hyprland、Sway、KDE Plasma、GNOME 扩展屏；GNOME
+  可用 `--mode mirror` 直接镜像现有桌面，其他 Wayland 合成器可走
+  `--mode mirror --output <名称>`。
 - 本地画面直连，不上传屏幕内容到服务端。
 
 ## 构建
@@ -63,15 +63,7 @@ xcodebuild build \
 ./run.sh
 ```
 
-接收端：
-
-```sh
-xcodebuild build \
-  -project WirelessScreen.xcodeproj \
-  -scheme WirelessScreenMacReceiver \
-  -configuration Release \
-  -derivedDataPath build
-```
+接收投屏无需单独构建：启动主 App，在“屏幕模式”里选择“接收投屏”。
 
 ### Android
 
@@ -100,20 +92,20 @@ Linux 接收端复用 `linux/` 下的 Rust、GTK 4 和 GStreamer 工程，发布
 
 ```sh
 cd linux
-OD_RECEIVER_VERSION=0.1.3 \
+OD_RECEIVER_VERSION=0.1.4 \
   cargo build --locked --release -p od-receiver
-OD_RECEIVER_VERSION=0.1.3 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.3 "$(uname -m)" full
+OD_RECEIVER_VERSION=0.1.4 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.4 "$(uname -m)" full
 ```
 
 兼容包的构建命令：
 
 ```sh
 cd linux
-OD_RECEIVER_VERSION=0.1.3 cargo build --locked --release -p od-receiver \
+OD_RECEIVER_VERSION=0.1.4 cargo build --locked --release -p od-receiver \
   --no-default-features --features gstreamer,logind
-OD_RECEIVER_VERSION=0.1.3 \
-  ./packaging/linux/build-receiver-tarball.sh 0.1.3 "$(uname -m)" compat
+OD_RECEIVER_VERSION=0.1.4 \
+  ./packaging/linux/build-receiver-tarball.sh 0.1.4 "$(uname -m)" compat
 ```
 
 兼容包不能带 `gtk` 特性；上面的示例已经给出正确的特性组合。RK3576 的
@@ -124,8 +116,8 @@ OD_RECEIVER_VERSION=0.1.3 \
 
 发布由 `.github/workflows/release.yml` 负责：
 
-- 推送 `v0.1.3` 这样的 tag，工作流会构建并签名 macOS Sender、macOS
-  Receiver、Android APK，以及 Linux aarch64/x86_64 接收端和发送端压缩包。
+- 推送 `v0.1.4` 这样的 tag，工作流会构建并签名统一的 macOS App、
+  Android APK，以及 Linux aarch64/x86_64 接收端和发送端压缩包。
 - macOS 使用 Sparkle 的 EdDSA 签名 appcast，默认每 6 小时检查一次。
 - Android 使用 `public/android-version.json`，自动下载 APK、校验 SHA-256，
   然后交给 Android 系统安装器确认。客户端使用 `refs/heads/main` 形式的

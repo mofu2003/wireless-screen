@@ -10,7 +10,7 @@ use super::adopt::AdoptBackend;
 use super::capture::{self, CaptureChoice, CapturePath, CaptureSelection, Offered};
 use super::hyprland::{HyprlandBackend, ipc};
 use super::wlroots::WlrootsBackend;
-use super::{Backend, BackendId};
+use super::{Backend, BackendId, SendMode};
 use crate::wayland::registry::Snapshot;
 
 /// The README's support table, for refusals.
@@ -51,6 +51,7 @@ impl Environment {
 pub struct Request {
     pub backend: Option<BackendId>,
     pub output: Option<String>,
+    pub mode: SendMode,
     /// `--capture` / config `capture`.
     pub capture: CaptureChoice,
 }
@@ -67,6 +68,11 @@ pub enum Decision {
     /// GNOME: Mutter's ScreenCast/RemoteDesktop D-Bus APIs (probed when the
     /// backend starts, so `decide` stays free of D-Bus).
     Gnome,
+    /// GNOME: record an existing monitor through `RecordMonitor`. No output
+    /// is created or removed; `None` mirrors the primary monitor.
+    GnomeMirror {
+        connector: Option<String>,
+    },
     Adopt {
         output: String,
     },
@@ -88,6 +94,13 @@ fn has_capture(s: &Snapshot) -> bool {
 
 fn has_input(s: &Snapshot) -> bool {
     s.has("zwlr_virtual_pointer_manager_v1")
+}
+
+fn is_gnome(env: &Environment) -> bool {
+    env.current_desktop.as_deref().is_some_and(|d| {
+        d.split(':')
+            .any(|part| part == "GNOME" || part == "GNOME-Classic")
+    })
 }
 
 fn version_of(s: &Snapshot, interface: &str) -> Option<u32> {
@@ -204,17 +217,38 @@ pub fn decide(
         };
     match (req.backend, &req.output) {
         (Some(BackendId::Adopt) | None, Some(output)) => {
+            if req.mode == SendMode::Mirror && req.backend.is_none() && is_gnome(env) {
+                steps.push(format!("--output {output}: GNOME mirror mode"));
+                return done(steps, gnome_decision(true, Some(output.clone())));
+            }
             steps.push(format!("--output {output}: adopt mode"));
             let d = adopt(output, &mut steps, &mut registry);
             return done(steps, d);
         }
         (Some(BackendId::Adopt), None) => {
+            if req.mode == SendMode::Mirror && is_gnome(env) {
+                steps.push("--output omitted: mirroring the primary GNOME monitor".into());
+                return done(steps, gnome_decision(true, None));
+            }
             return done(
                 steps,
                 Decision::Unsupported("--backend adopt needs --output <name>".into()),
             );
         }
         (Some(BackendId::Hyprland), _) => {
+            if req.mode == SendMode::Mirror {
+                if let Some(output) = &req.output {
+                    steps.push(format!("--mode mirror --output {output}: adopt mode"));
+                    let d = adopt(output, &mut steps, &mut registry);
+                    return done(steps, d);
+                }
+                return done(
+                    steps,
+                    Decision::Unsupported(
+                        "--backend hyprland --mode mirror needs --output <name>".into(),
+                    ),
+                );
+            }
             if req.output.is_some() {
                 steps.push("--output is ignored with --backend hyprland".into());
             }
@@ -227,6 +261,19 @@ pub fn decide(
             return done(steps, d);
         }
         (Some(BackendId::Wlroots), _) => {
+            if req.mode == SendMode::Mirror {
+                if let Some(output) = &req.output {
+                    steps.push(format!("--mode mirror --output {output}: adopt mode"));
+                    let d = adopt(output, &mut steps, &mut registry);
+                    return done(steps, d);
+                }
+                return done(
+                    steps,
+                    Decision::Unsupported(
+                        "--backend wlroots --mode mirror needs --output <name>".into(),
+                    ),
+                );
+            }
             if req.output.is_some() {
                 steps.push("--output is ignored with --backend wlroots".into());
             }
@@ -243,6 +290,19 @@ pub fn decide(
             return done(steps, d);
         }
         (Some(BackendId::Kde), _) => {
+            if req.mode == SendMode::Mirror {
+                if let Some(output) = &req.output {
+                    steps.push(format!("--mode mirror --output {output}: adopt mode"));
+                    let d = adopt(output, &mut steps, &mut registry);
+                    return done(steps, d);
+                }
+                return done(
+                    steps,
+                    Decision::Unsupported(
+                        "--backend kde --mode mirror needs --output <name>".into(),
+                    ),
+                );
+            }
             let d = match registry(&mut steps) {
                 Ok(s) => kde_decision(&s),
                 Err(e) => {
@@ -251,14 +311,44 @@ pub fn decide(
             };
             return done(steps, d);
         }
-        (Some(BackendId::Gnome), _) => return done(steps, gnome_decision()),
+        (Some(BackendId::Gnome), _) => {
+            if req.mode == SendMode::Mirror {
+                steps.push(match &req.output {
+                    Some(output) => format!("--output {output}: GNOME mirror mode"),
+                    None => "GNOME mirror mode: primary monitor".into(),
+                });
+                return done(steps, gnome_decision(true, req.output.clone()));
+            }
+            if let Some(output) = &req.output {
+                return done(
+                    steps,
+                    Decision::Unsupported(format!(
+                        "--backend gnome --output {output}: GNOME uses --output for mirroring; add --mode mirror"
+                    )),
+                );
+            }
+            return done(steps, gnome_decision(false, None));
+        }
         (Some(b @ BackendId::Portal), _) => {
             return done(
                 steps,
                 Decision::Unsupported(format!("the {b} backend is not implemented yet ({ISSUE})")),
             );
         }
-        (None, None) => {}
+        (None, None) => {
+            if req.mode == SendMode::Mirror {
+                if is_gnome(env) {
+                    steps.push("mirror mode: primary GNOME monitor".into());
+                    return done(steps, gnome_decision(true, None));
+                }
+                return done(
+                    steps,
+                    Decision::Unsupported(
+                        "--mode mirror on this desktop needs --output <name> (adopt mode)".into(),
+                    ),
+                );
+            }
+        }
     }
 
     // 2. Hyprland. Never trust XDG_CURRENT_DESKTOP alone.
@@ -319,8 +409,8 @@ pub fn decide(
     if let Some(d) = &env.current_desktop {
         steps.push(format!("XDG_CURRENT_DESKTOP={d}"));
         // `ubuntu:GNOME`, `GNOME-Classic:GNOME`, `GNOME`.
-        if d.split(':').any(|p| p == "GNOME" || p == "GNOME-Classic") {
-            return done(steps, gnome_decision());
+        if is_gnome(env) {
+            return done(steps, gnome_decision(false, None));
         }
     }
 
@@ -344,9 +434,13 @@ pub fn decide(
     )
 }
 
-fn gnome_decision() -> Decision {
+fn gnome_decision(mirror: bool, connector: Option<String>) -> Decision {
     if cfg!(feature = "gnome") {
-        Decision::Gnome
+        if mirror {
+            Decision::GnomeMirror { connector }
+        } else {
+            Decision::Gnome
+        }
     } else {
         Decision::Unsupported(
             "this wireless-screen-sender was built without GNOME support (cargo feature `gnome`)"
@@ -420,8 +514,19 @@ pub fn instantiate(decision: Decision) -> Result<Box<dyn Backend>> {
                 "GNOME: Mutter's ScreenCast/RemoteDesktop D-Bus APIs are not reachable ({e:#}); wireless-screen-sender needs an unsandboxed GNOME Wayland session"
             )))),
         },
+        #[cfg(feature = "gnome")]
+        Decision::GnomeMirror { connector } => {
+            match super::gnome::GnomeBackend::connect_mirror(connector) {
+                Ok(b) => Ok(Box::new(b)),
+                Err(e) => Err(anyhow!(Unsupported(format!(
+                    "GNOME mirror: Mutter's ScreenCast/RemoteDesktop D-Bus APIs are not reachable ({e:#}); wireless-screen-sender needs an unsandboxed GNOME Wayland session"
+                )))),
+            }
+        }
         #[cfg(not(feature = "gnome"))]
-        Decision::Gnome => Err(anyhow!(Unsupported("built without GNOME support".into()))),
+        Decision::Gnome | Decision::GnomeMirror { .. } => {
+            Err(anyhow!(Unsupported("built without GNOME support".into())))
+        }
         Decision::Adopt { output } => Ok(Box::new(AdoptBackend::new(output))),
         Decision::Unsupported(msg) => Err(anyhow!(Unsupported(msg))),
     }
@@ -784,6 +889,37 @@ mod tests {
         }
     }
 
+    #[test]
+    fn gnome_mirror_uses_the_primary_or_named_monitor() {
+        let env = Environment {
+            wayland_display: Some("wayland-0".into()),
+            current_desktop: Some("ubuntu:GNOME".into()),
+            ..Default::default()
+        };
+        let req = Request {
+            mode: SendMode::Mirror,
+            ..Default::default()
+        };
+        let (w, _) = run(&env, &req, Some(Snapshot::default()));
+        assert_gnome_mirror(&w, None);
+
+        let req = Request {
+            mode: SendMode::Mirror,
+            output: Some("eDP-1".into()),
+            ..Default::default()
+        };
+        let (w, _) = run(&env, &req, Some(Snapshot::default()));
+        assert_gnome_mirror(&w, Some("eDP-1"));
+
+        let forced = Request {
+            backend: Some(BackendId::Gnome),
+            mode: SendMode::Mirror,
+            ..Default::default()
+        };
+        let (w, _) = run(&Environment::default(), &forced, None);
+        assert_gnome_mirror(&w, None);
+    }
+
     /// KDE when built with it, else a message naming the missing feature.
     fn assert_kde(w: &Walk) {
         if cfg!(feature = "kde") {
@@ -797,6 +933,21 @@ mod tests {
     fn assert_gnome(w: &Walk) {
         if cfg!(feature = "gnome") {
             assert_eq!(w.decision, Decision::Gnome, "{:?}", w.steps);
+        } else {
+            assert!(unsupported(w).contains("without GNOME support"), "{w:?}");
+        }
+    }
+
+    fn assert_gnome_mirror(w: &Walk, connector: Option<&str>) {
+        if cfg!(feature = "gnome") {
+            assert_eq!(
+                w.decision,
+                Decision::GnomeMirror {
+                    connector: connector.map(ToOwned::to_owned)
+                },
+                "{:?}",
+                w.steps
+            );
         } else {
             assert!(unsupported(w).contains("without GNOME support"), "{w:?}");
         }

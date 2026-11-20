@@ -198,6 +198,7 @@ mod tests {
             x: 3840,
             y: 0,
             scale: 2.0,
+            transform: 0,
             logical_layout,
         };
         for (logical, middle, corner) in [
@@ -231,5 +232,27 @@ mod tests {
             [Call::Axis(-2.0, 10.0, AXIS_SOURCE_FINGER)]
         );
         assert!(m.scroll(&Scroll { dx: 0.0, dy: 0.0 }).is_empty());
+    }
+
+    #[test]
+    fn monitor_streams_map_to_upright_physical_pixels() {
+        use super::super::mutter::Placement;
+        let p = Placement {
+            connector: "eDP-1".into(),
+            width: 2880,
+            height: 1800,
+            refresh: 120.0,
+            x: 0,
+            y: 0,
+            scale: 2.0,
+            transform: 1,
+            logical_layout: true,
+        };
+        let (w, h) = p.stream_size();
+        let mut m = Mapper::new(w as f64, h as f64, p.scale);
+        assert_eq!(
+            m.touch(&touch(TouchPhase::Moved, 0.5, 0.25)),
+            [Call::Motion(900.0, 720.0)]
+        );
     }
 }
