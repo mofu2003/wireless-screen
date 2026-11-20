@@ -15,7 +15,7 @@
 //! capture = "auto"           # auto | ext | wlr (auto: wlr on Hyprland < 0.57)
 //! tailscale = true           # false: never probe Tailscale peers (#409)
 //!
-//! [receiver."3F2A9C1E-..."]   # id (from `wireless-screen-sender list`) or Bonjour name
+//! [receiver."3F2A9C1E-..."]   # id (from `wireless-screen list`) or Bonjour name
 //! position = "auto-left"
 //! scale = 2
 //! bitrate-mbps = 30

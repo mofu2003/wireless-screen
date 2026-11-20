@@ -1,10 +1,10 @@
 [Unit]
-Description=WirelessScreen sender to %I
+Description=WirelessScreen send to %I
 PartOf=graphical-session.target
 After=graphical-session.target
 
 [Service]
-ExecStart=/usr/bin/wireless-screen-sender run --to %I --wait
+ExecStart=/usr/bin/wireless-screen send --to %I --wait
 Restart=on-failure
 RestartSec=15
 RestartPreventExitStatus=2

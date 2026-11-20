@@ -106,7 +106,7 @@ impl Backend for WlrootsBackend {
             // Held while removing, so no sender can start on it meanwhile.
             let Some(_lock) = try_lock(&lock_name)? else {
                 warn!(
-                    "{} ({lock_name}) is in use by a running wireless-screen-sender; leaving it",
+                    "{} ({lock_name}) is in use by a running wireless-screen; leaving it",
                     rec.output
                 );
                 continue;

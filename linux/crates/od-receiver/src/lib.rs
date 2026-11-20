@@ -3,6 +3,9 @@
 //! replaces a live one, §1), an optional UDP cursor port
 //! (§6.3), a Bonjour advertisement (§2.1), and a decode/present pipeline.
 
+extern crate self as od_receiver;
+
+pub mod cli;
 pub mod discovery;
 #[cfg(feature = "gtk")]
 pub mod gtk_ui;

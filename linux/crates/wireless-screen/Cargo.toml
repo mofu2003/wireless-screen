@@ -1,0 +1,18 @@
+[package]
+name = "wireless-screen"
+description = "WirelessScreen for Linux: one app that sends or receives a wireless display."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+default = ["gtk"]
+gtk = ["od-receiver/gtk", "od-receiver/dmabuf"]
+
+[dependencies]
+anyhow = { workspace = true }
+od-receiver = { workspace = true, default-features = false, features = ["gstreamer", "logind"] }
+od-sender = { workspace = true }
+od-update = { workspace = true }

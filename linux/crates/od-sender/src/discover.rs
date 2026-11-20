@@ -37,10 +37,10 @@ Is WirelessScreen open on the Mac with “Receive” selected, or the WirelessSc
 receiver app open on the Android device, on the same Wi-Fi as this computer
 (not a guest network)? On macOS, allow Local Network access for WirelessScreen.
 Bonjour does not cross VPNs: over Tailscale or another VPN, connect with
-`wireless-screen-sender run --to <vpn-ip>:9000`
+`wireless-screen send --to <vpn-ip>:9000`
 (`tailscale ip -4 <device>` prints it). Try
-`wireless-screen-sender list --timeout 10`, or connect directly with
-`wireless-screen-sender run --to <device-ip>:9000`.";
+`wireless-screen list --timeout 10`, or connect directly with
+`wireless-screen send --to <device-ip>:9000`.";
 
 /// Discovery found nothing.
 #[derive(Debug)]
@@ -61,7 +61,7 @@ impl std::fmt::Display for NoReceiver {
                 for r in &self.others {
                     writeln!(f, "  {}  ({})", r.instance, r.addr)?;
                 }
-                return write!(f, "connect with: wireless-screen-sender connect <name>");
+                return write!(f, "connect with: wireless-screen send <name>");
             }
             Some(t) => write!(
                 f,
@@ -91,7 +91,7 @@ impl std::fmt::Display for SeveralReceivers {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         writeln!(
             f,
-            "several receivers found; pick one with `wireless-screen-sender connect <name>`:"
+            "several receivers found; pick one with `wireless-screen send <name>`:"
         )?;
         for r in &self.0 {
             writeln!(
@@ -447,7 +447,7 @@ mod tests {
         );
         let e = SeveralReceivers(vec![r("iPhone", "A"), r("iMac", "B")]).to_string();
         assert!(
-            e.contains("wireless-screen-sender connect <name>") && e.contains("iMac"),
+            e.contains("wireless-screen send <name>") && e.contains("iMac"),
             "{e}"
         );
     }

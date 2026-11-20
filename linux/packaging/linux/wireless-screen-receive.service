@@ -1,0 +1,15 @@
+# Start the receive side of the same app fullscreen after login.
+#   systemctl --user enable --now wireless-screen-receive
+# Override arguments with `systemctl --user edit wireless-screen-receive`.
+[Unit]
+Description=WirelessScreen receive
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/wireless-screen receive
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

@@ -7,6 +7,7 @@ members = [
     "crates/od-receiver",
     "crates/od-sender",
     "crates/od-update",
+    "crates/wireless-screen",
 ]
 
 [workspace.package]
@@ -19,6 +20,8 @@ rust-version = "1.85"
 [workspace.dependencies]
 opendisplay-proto = { path = "crates/opendisplay-proto" }
 opendisplay-session = { path = "crates/opendisplay-session" }
+od-receiver = { path = "crates/od-receiver" }
+od-sender = { path = "crates/od-sender" }
 od-update = { path = "crates/od-update" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }

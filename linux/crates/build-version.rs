@@ -5,8 +5,10 @@
 //
 // First of:
 //
-// 1. `$<env_var>` (OD_SENDER_VERSION / OD_RECEIVER_VERSION), set by the
-//    release workflow and the PKGBUILDs (a tag tarball has no `.git`);
+// 1. `OD_APP_VERSION` for the unified app, or `$<env_var>`
+//    (OD_SENDER_VERSION / OD_RECEIVER_VERSION) for the standalone development
+//    binaries. The release workflow sets these because a tag tarball has no
+//    `.git`;
 // 2. `git describe` against the `v*` tags: `1.26.0` on the tag,
 //    `1.26.0-5-gabc1234` past it, `<crate version>-dev.abc1234` with no tag
 //    in reach (a shallow clone);
@@ -23,11 +25,15 @@ fn git(args: &[&str]) -> Option<String> {
 
 /// Emits `cargo:rustc-env=<env_var>=<version>` (see above).
 fn emit_version(env_var: &str) {
+    println!("cargo:rerun-if-env-changed=OD_APP_VERSION");
     println!("cargo:rerun-if-env-changed={env_var}");
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=../build-version.rs");
     let crate_version = std::env::var("CARGO_PKG_VERSION").unwrap_or_default();
-    let from_env = std::env::var(env_var).ok().filter(|v| !v.trim().is_empty());
+    let from_env = std::env::var("OD_APP_VERSION")
+        .ok()
+        .or_else(|| std::env::var(env_var).ok())
+        .filter(|v| !v.trim().is_empty());
     let version = from_env
         .or_else(|| {
             // A new commit or checkout changes HEAD (or the branch's log).

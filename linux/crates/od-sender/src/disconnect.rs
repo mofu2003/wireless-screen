@@ -1,4 +1,4 @@
-//! `wireless-screen-sender disconnect [receiver]`: stop running senders from another
+//! `wireless-screen disconnect [receiver]`: stop running senders from another
 //! terminal, the same way Ctrl+C in their own terminal would. The per-output
 //! lock records each sender's pid ([`lock`]), so no daemon or socket is
 //! needed: we send SIGINT and wait for the orderly teardown.
@@ -86,14 +86,14 @@ pub fn run(wanted: Option<&str>) -> Result<i32> {
     if targets.is_empty() {
         match wanted {
             Some(w) => {
-                eprintln!("no running wireless-screen-sender is connected to {w:?}");
+                eprintln!("no running wireless-screen is connected to {w:?}");
                 for r in &all {
                     eprintln!("  running: {} (pid {}): {}", r.output, r.pid, r.cmdline);
                 }
                 return Ok(3);
             }
             None => {
-                info!("no wireless-screen-sender is connected");
+                info!("no wireless-screen is connected");
                 return Ok(0);
             }
         }
@@ -118,7 +118,7 @@ pub fn run(wanted: Option<&str>) -> Result<i32> {
         }
         if alive(r.pid) {
             warn!(
-                "pid {} ({}) is still shutting down; check with `wireless-screen-sender list` or stop it with `kill {}`",
+                "pid {} ({}) is still shutting down; check with `wireless-screen list` or stop it with `kill {}`",
                 r.pid, r.output, r.pid
             );
         } else {

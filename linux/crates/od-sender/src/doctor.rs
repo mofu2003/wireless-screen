@@ -1,4 +1,4 @@
-//! `wireless-screen-sender doctor`: what the sender would use on this desktop and why.
+//! `wireless-screen doctor`: what the sender would use on this desktop and why.
 //! Read-only: it creates no output and takes no lock.
 
 use std::path::{Path, PathBuf};
@@ -18,7 +18,7 @@ fn wlroots_report() {
             Some(pid) if std::path::Path::new(&format!("/proc/{pid}")).exists() => {
                 format!("held by pid {pid}")
             }
-            _ => "left behind; `wireless-screen-sender clean` removes it".into(),
+            _ => "left behind; `wireless-screen clean` removes it".into(),
         };
         println!("  {lock_name} -> {} ({state})", rec.output);
     }
@@ -26,7 +26,7 @@ fn wlroots_report() {
 
 /// Prints the report; returns `false` on an unsupported desktop.
 pub fn doctor(req: &Request, config_path: Option<&Path>) -> bool {
-    println!("wireless-screen-sender {}", env!("OD_SENDER_VERSION"));
+    println!("wireless-screen {}", env!("OD_SENDER_VERSION"));
     let config_ok = config_report(config_path);
     let env = Environment::from_process();
 
@@ -264,7 +264,7 @@ fn hyprland_report(socket: PathBuf) -> bool {
             );
             match ipc.option("ecosystem:enforce_permissions") {
                 Ok(o) if o.get("bool").and_then(|b| b.as_bool()) == Some(true) => println!(
-                    "  ecosystem:enforce_permissions = true: allow screencopy for wireless-screen-sender with an hl.permission rule, or it streams black frames"
+                    "  ecosystem:enforce_permissions = true: allow screencopy for wireless-screen with an hl.permission rule, or it streams black frames"
                 ),
                 Ok(_) => println!("  ecosystem:enforce_permissions = false"),
                 Err(e) => println!("  ecosystem:enforce_permissions: {e:#}"),

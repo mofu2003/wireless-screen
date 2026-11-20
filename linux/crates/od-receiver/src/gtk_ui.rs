@@ -21,9 +21,9 @@ use crate::input::{ScrollUnit, UserInput, VideoRect, scroll_to_video};
 use crate::video::VideoOutput;
 use crate::video::gst_out::GstOutput;
 
-/// The reverse-DNS id: the Wayland app_id and the desktop entry's name
-/// (`wireless-screen-receiver.desktop`) match it.
-pub const APP_ID: &str = "io.github.mofu2003.wirelessscreen.receiver";
+/// The reverse-DNS id used as the unified app's GTK Wayland app_id. It matches
+/// `StartupWMClass` in `wireless-screen.desktop`.
+pub const APP_ID: &str = "io.github.mofu2003.wirelessscreen";
 
 /// One monitor as GDK reports it.
 #[derive(Debug, Clone, PartialEq)]

@@ -14,6 +14,7 @@ pub const MANIFEST_URL_ENV: &str = "WIRELESS_SCREEN_UPDATE_MANIFEST";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Component {
+    App,
     Sender,
     ReceiverFull,
     ReceiverCompat,
@@ -22,6 +23,7 @@ pub enum Component {
 impl Component {
     pub fn package_key(self, arch: Arch) -> String {
         let component = match self {
+            Self::App => "app",
             Self::Sender => "sender",
             Self::ReceiverFull => "receiver-full",
             Self::ReceiverCompat => "receiver-compat",
@@ -31,6 +33,7 @@ impl Component {
 
     fn binary_name(self) -> &'static str {
         match self {
+            Self::App => "wireless-screen",
             Self::Sender => "wireless-screen-sender",
             Self::ReceiverFull | Self::ReceiverCompat => "wireless-screen-receiver",
         }
@@ -38,6 +41,7 @@ impl Component {
 
     fn label(self) -> &'static str {
         match self {
+            Self::App => "无线副屏",
             Self::Sender => "发送端",
             Self::ReceiverFull => "接收端完整包",
             Self::ReceiverCompat => "接收端兼容包",
@@ -46,6 +50,7 @@ impl Component {
 
     fn restart_hint(self) -> &'static str {
         match self {
+            Self::App => "请重新启动正在运行的无线副屏，或重启对应的 systemd 用户服务。",
             Self::Sender => "请重新启动正在运行的发送端，或重启对应的 systemd 用户服务。",
             Self::ReceiverFull | Self::ReceiverCompat => {
                 "请重新启动接收端，或运行 systemctl --user restart wireless-screen-receiver。"
@@ -480,6 +485,8 @@ mod tests {
 
     #[test]
     fn package_keys_match_release_assets() {
+        assert_eq!(Component::App.package_key(Arch::Aarch64), "app-aarch64");
+        assert_eq!(Component::App.package_key(Arch::X86_64), "app-x86_64");
         assert_eq!(
             Component::Sender.package_key(Arch::Aarch64),
             "sender-aarch64"

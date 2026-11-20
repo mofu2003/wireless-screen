@@ -108,7 +108,7 @@ impl Backend for KdeBackend {
                 Some(l) => held.push(l),
                 None => {
                     info!(
-                        "{name} is in use by a running wireless-screen-sender; leaving the layout alone"
+                        "{name} is in use by a running wireless-screen; leaving the layout alone"
                     );
                     return Ok(Vec::new());
                 }

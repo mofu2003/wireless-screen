@@ -1,0 +1,26 @@
+[Desktop Entry]
+Type=Application
+Name=WirelessScreen
+Name[zh_CN]=无线副屏
+Comment=Send or receive a wireless display
+Comment[zh_CN]=把屏幕无线发送出去，或接收另一台设备的投屏
+Exec=/usr/bin/wireless-screen
+Icon=wireless-screen
+StartupWMClass=io.github.mofu2003.wirelessscreen
+Terminal=true
+Categories=Utility;Network;
+Keywords=wireless;display;screen;mirror;extend;sender;receiver;monitor;
+Actions=send;receive;
+X-KDE-Wayland-Interfaces=zkde_screencast_unstable_v1,org_kde_kwin_fake_input
+
+[Desktop Action send]
+Name=Send this screen
+Name[en]=Send this screen
+Name[zh_CN]=发送屏幕
+Exec=/usr/bin/wireless-screen send
+
+[Desktop Action receive]
+Name=Receive a display
+Name[en]=Receive a display
+Name[zh_CN]=接收投屏
+Exec=/usr/bin/wireless-screen receive

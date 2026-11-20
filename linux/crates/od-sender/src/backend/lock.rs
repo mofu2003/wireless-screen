@@ -27,12 +27,12 @@ impl std::fmt::Display for LockHeld {
         match self.pid {
             Some(pid) => write!(
                 f,
-                "another wireless-screen-sender (pid {pid}) is already driving {}",
+                "another wireless-screen (pid {pid}) is already driving {}",
                 self.name
             ),
             None => write!(
                 f,
-                "another wireless-screen-sender is already driving {}",
+                "another wireless-screen is already driving {}",
                 self.name
             ),
         }

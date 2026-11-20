@@ -2837,6 +2837,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "wireless-screen"
+version = "1.30.3"
+dependencies = [
+ "anyhow",
+ "od-receiver",
+ "od-sender",
+ "od-update",
+]
+
+[[package]]
 name = "wit-bindgen"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

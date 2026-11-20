@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.2.0] - 2026-11-20
+
+### Linux 统一应用
+
+- Linux 不再区分发送端和接收端，只发布一个 `wireless-screen` 程序和
+  `WirelessScreen-<version>-linux-<arch>.tar.gz` 安装包。
+- 同一个程序提供 `send`、`receive`、`list`、`doctor`、`disconnect`、
+  `clean` 和 `update`；直接运行 `wireless-screen` 会打开终端菜单。
+- 底层继续复用原有发送/接收代码和 OpenDisplay v3 协议：发送支持
+  Hyprland、Sway、KDE Plasma、GNOME；接收支持 GTK 全屏、触控回传、
+  GStreamer 解码和 Rockchip 硬解优先。
+- 桌面入口合并为一个“无线副屏”，安装器会删除 0.1.x 遗留的
+  `wireless-screen-sender`、`wireless-screen-receiver`、桌面入口和
+  systemd 服务。
+- `public/linux-version.json` 改为按 aarch64/x86_64 提供统一包；
+  `wireless-screen update` 会校验 SHA-256、覆盖安装并保留配置和接收端 ID。
+- 0.1.5 的旧更新器无法迁移到统一包，因此升级到 0.2.0 需要手动安装一次；
+  从 0.2.0 开始可以继续使用 `wireless-screen update`。
+
+### 验证
+
+- Linux workspace 共 231 项测试通过，格式检查和 Clippy 通过。
+- 同一个二进制已验证 `send --help`、`receive --help`、版本输出，以及
+  `receive --sink none` 正常监听 TCP。
+- 在 Ubuntu 24.04 aarch64 容器中验证用户级与系统级安装、卸载；安装器会
+  删除 0.1.x 的发送端/接收端文件，只安装一个 `wireless-screen`。
+- 使用 0.1.9 测试二进制和本地更新源实际升级到 0.2.0：SHA-256 校验、
+  覆盖安装、旧文件清理和新版本输出均通过。
+- 未连接 RK3576 实机，也未在实体 GNOME 桌面验证图形会话和真实投屏。
+
 ## [0.1.5] - 2026-11-20
 
 ### Linux 更新

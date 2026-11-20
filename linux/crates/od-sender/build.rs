@@ -1,5 +1,6 @@
-//! `OD_SENDER_VERSION` for `od-sender --version` and `doctor`: the
-//! `vX.Y.Z` release tag, see `../build-version.rs`.
+//! `OD_SENDER_VERSION` for `od-sender --version` and `doctor`, with
+//! `OD_APP_VERSION` taking precedence in the unified binary: the `vX.Y.Z`
+//! release tag, see `../build-version.rs`.
 
 include!("../build-version.rs");
 
