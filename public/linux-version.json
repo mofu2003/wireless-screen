@@ -1,31 +1,15 @@
 {
-  "version": "0.1.5",
-  "tag": "v0.1.5",
-  "notes": "### Linux 更新\n\n- Linux 发送端新增 `wireless-screen-sender update --check` 和\n  `wireless-screen-sender update`；接收端提供同名命令。\n- 更新器从 `public/linux-version.json` 获取最新版本，按当前 CPU 架构选择\n  aarch64 或 x86_64 安装包；接收端还会按完整包/兼容包自动选择，避免互相\n  覆盖。\n- 下载后校验 SHA-256，再调用发布包内的现有安装脚本覆盖程序、桌面入口和\n  systemd 服务；发送端配置和接收端安装 ID 保持不变。\n- 支持用户级与系统级安装。系统级更新需要 `sudo`，发行版包管理器或\n  Flatpak 安装会拒绝自行覆盖。\n- Release 工作流新增生成 `public/linux-version.json`，列出 sender、\n  receiver-full、receiver-compat 在两个架构上的下载地址和 SHA-256。\n- 增加更新命令的中文文档、错误提示和手动检查入口；不做后台自动安装。\n\n### 验证\n\n- Linux workspace 共 231 项测试通过，格式检查和 Clippy 通过。\n- 使用带更新功能的 0.1.4 测试二进制和本地 HTTP 更新源，实际覆盖安装到\n  0.1.5：发送端、接收端完整包和兼容包均通过 SHA-256 校验，版本输出为\n  0.1.5，发送端配置与接收端安装 ID 保留。\n- 校验值错误时安装被拒绝；非 root 用户执行系统级更新会提示使用 `sudo`。\n- 未连接 RK3576 实机，也未在实体 GNOME 桌面执行图形会话更新；发布后\n  继续验证公开 GitHub 更新源。",
+  "version": "0.2.0",
+  "tag": "v0.2.0",
+  "notes": "### Linux 统一应用\n\n- Linux 不再区分发送端和接收端，只发布一个 `wireless-screen` 程序和\n  `WirelessScreen-<version>-linux-<arch>.tar.gz` 安装包。\n- 同一个程序提供 `send`、`receive`、`list`、`doctor`、`disconnect`、\n  `clean` 和 `update`；直接运行 `wireless-screen` 会打开终端菜单。\n- 底层继续复用原有发送/接收代码和 OpenDisplay v3 协议：发送支持\n  Hyprland、Sway、KDE Plasma、GNOME；接收支持 GTK 全屏、触控回传、\n  GStreamer 解码和 Rockchip 硬解优先。\n- 桌面入口合并为一个“无线副屏”，安装器会删除 0.1.x 遗留的\n  `wireless-screen-sender`、`wireless-screen-receiver`、桌面入口和\n  systemd 服务。\n- `public/linux-version.json` 改为按 aarch64/x86_64 提供统一包；\n  `wireless-screen update` 会校验 SHA-256、覆盖安装并保留配置和接收端 ID。\n- 0.1.5 的旧更新器无法迁移到统一包，因此升级到 0.2.0 需要手动安装一次；\n  从 0.2.0 开始可以继续使用 `wireless-screen update`。\n\n### 验证\n\n- Linux workspace 共 231 项测试通过，格式检查和 Clippy 通过。\n- 同一个二进制已验证 `send --help`、`receive --help`、版本输出，以及\n  `receive --sink none` 正常监听 TCP。\n- 在 Ubuntu 24.04 aarch64 容器中验证用户级与系统级安装、卸载；安装器会\n  删除 0.1.x 的发送端/接收端文件，只安装一个 `wireless-screen`。\n- 使用 0.1.9 测试二进制和本地更新源实际升级到 0.2.0：SHA-256 校验、\n  覆盖安装、旧文件清理和新版本输出均通过。\n- 未连接 RK3576 实机，也未在实体 GNOME 桌面验证图形会话和真实投屏。",
   "packages": {
-    "receiver-compat-aarch64": {
-      "url": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.5/WirelessScreenReceiver-0.1.5-linux-aarch64-compat.tar.gz",
-      "sha256": "ba176d7f1a55f25a541eebcf8e2ffdb16d73888ead7259913a3feb156f3603ae"
+    "app-aarch64": {
+      "url": "https://github.com/mofu2003/wireless-screen/releases/download/v0.2.0/WirelessScreen-0.2.0-linux-aarch64.tar.gz",
+      "sha256": "b2b8f58742fbb91dbaa5aecff512beed23e8c830f9c6df36f6088fd496d3c6ce"
     },
-    "receiver-compat-x86_64": {
-      "url": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.5/WirelessScreenReceiver-0.1.5-linux-x86_64-compat.tar.gz",
-      "sha256": "9cc4816ff5c4c58f45a6a7157dff3ab441cedf8997f2fa885bc3d2ad14d03899"
-    },
-    "receiver-full-aarch64": {
-      "url": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.5/WirelessScreenReceiver-0.1.5-linux-aarch64.tar.gz",
-      "sha256": "8275676a593f05767cadffa37765d7dee144c30a397fc371ceee4fa375ec6112"
-    },
-    "receiver-full-x86_64": {
-      "url": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.5/WirelessScreenReceiver-0.1.5-linux-x86_64.tar.gz",
-      "sha256": "fdbed877f69a957e0fa0556a8c31bac938763c224be9564c41a266abe33efe69"
-    },
-    "sender-aarch64": {
-      "url": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.5/WirelessScreenSender-0.1.5-linux-aarch64.tar.gz",
-      "sha256": "e3b15e9e86978d223339488a13ceb98f61e90d5a2f38db944cdd2b96cc41e727"
-    },
-    "sender-x86_64": {
-      "url": "https://github.com/mofu2003/wireless-screen/releases/download/v0.1.5/WirelessScreenSender-0.1.5-linux-x86_64.tar.gz",
-      "sha256": "43e14ffd7d18b649441c2693552e9bb59dd73bbbdbc55eda1badb79df74951e7"
+    "app-x86_64": {
+      "url": "https://github.com/mofu2003/wireless-screen/releases/download/v0.2.0/WirelessScreen-0.2.0-linux-x86_64.tar.gz",
+      "sha256": "39fdfe829c86918b2d575155689b73beceed41ef68d6c3c88f58c1e0bf76acda"
     }
   }
 }
